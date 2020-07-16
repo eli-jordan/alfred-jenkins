@@ -26,13 +26,14 @@ trait AlfredJenkinsModule {
   implicit def contextShift: ContextShift[IO]
 
   private lazy val Settings = new Settings[AlfredJenkinsSettings](environment)
-  private lazy val Jenkins  = new Jenkins(client, Settings, credentials)
+  private lazy val JenkinsCache = new JenkinsCache(environment)
+  private lazy val JenkinsClient = new JenkinsClient(client, Settings, credentials)
+  private lazy val Jenkins  = new Jenkins(JenkinsClient, JenkinsCache)
 
   private lazy val BrowseCommand = new BrowseCommand(Jenkins, Settings)
   private lazy val SearchCommand = new SearchCommand(Jenkins, Settings)
   private lazy val LoginCommand  = new LoginCommand(Settings, credentials)
   lazy val CommandDispatcher     = new CommandDispatcher(BrowseCommand, SearchCommand, LoginCommand)
-
 }
 
 object AlfredJenkins extends IOApp { self =>
@@ -68,7 +69,7 @@ object AlfredJenkins extends IOApp { self =>
   private val module: Resource[IO, AlfredJenkinsModule] = {
     for {
       clientValue      <- BlazeClientBuilder[IO](ExecutionContext.global).resource
-      environmentValue <- Resource.liftF(AlfredEnvironment.fromEnv.liftTo[IO])
+      environmentValue <- Resource.liftF(AlfredEnvironment.fromEnv.liftTo[IO].flatTap(env => log.info(s"AlfredEnvironment: $env")))
       credentialsValue <- Resource.liftF(Credentials.create(environmentValue.workflowBundleId))
     } yield {
       new AlfredJenkinsModule {
