@@ -116,7 +116,7 @@ class JenkinsClient(client: Client[IO], settings: Settings[AlfredJenkinsSettings
   * The data is stored as individual files, that correspond to the host and path of a jenkins job.
   * For example.
   *  https://jenkins.com/job/MyCachedJob would have the response data stored in
-  *  ${cache_dir}/jenkins.com/job/MyCachedJob/cache.json
+  *  <cache_dir>/jenkins.com/job/MyCachedJob/cache.json
   *
   * @param env The environment. This is just used to extract the cache directory
   * @param cacheTtl The time-to-live of cache entries.

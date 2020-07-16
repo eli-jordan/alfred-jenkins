@@ -27,14 +27,14 @@ object AlfredEnvironment {
 
   def fromMap(map: Map[String, String]): Try[AlfredEnvironment] = {
     for {
-      alfredVersion      <- get(map, AlfredDebugKey)
+      alfredVersion      <- get(map, AlfredVersionKey)
       alfredVersionBuild <- get(map, AlfredVersionBuildKey)
       workflowBundleId   <- get(map, AlfredWorkflowBundleIdKey)
       workflowCacheDir   <- get(map, AlfredWorkflowCacheKey)
       workflowDataDir    <- get(map, AlfredWorkflowDataKey)
       workflowName       <- get(map, AlfredWorkflowNameKey)
       workflowUid        <- get(map, AlfredWorkflowUidKey)
-      debugMode          <- get(map, AlfredDebugKey)
+      debugMode = getOpt(map, AlfredDebugKey)
     } yield {
       AlfredEnvironment(
         alfredVersion = alfredVersion,
@@ -44,10 +44,12 @@ object AlfredEnvironment {
         workflowDataDir = workflowDataDir,
         workflowName = workflowName,
         workflowUid = workflowUid,
-        debugMode = debugMode == "1"
+        debugMode = debugMode.contains("1")
       )
     }
   }
+
+  private def getOpt(map: Map[String, String], key: String): Option[String] = map.get(key)
 
   private def get(map: Map[String, String], key: String): Try[String] = {
     map.get(key) match {

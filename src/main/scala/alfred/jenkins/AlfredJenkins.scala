@@ -25,10 +25,10 @@ trait AlfredJenkinsModule {
 
   implicit def contextShift: ContextShift[IO]
 
-  private lazy val Settings = new Settings[AlfredJenkinsSettings](environment)
-  private lazy val JenkinsCache = new JenkinsCache(environment)
+  private lazy val Settings      = new Settings[AlfredJenkinsSettings](environment)
+  private lazy val JenkinsCache  = new JenkinsCache(environment)
   private lazy val JenkinsClient = new JenkinsClient(client, Settings, credentials)
-  private lazy val Jenkins  = new Jenkins(JenkinsClient, JenkinsCache)
+  private lazy val Jenkins       = new Jenkins(JenkinsClient, JenkinsCache)
 
   private lazy val BrowseCommand = new BrowseCommand(Jenkins, Settings)
   private lazy val SearchCommand = new SearchCommand(Jenkins, Settings)
@@ -42,15 +42,18 @@ object AlfredJenkins extends IOApp { self =>
 
   override def run(args: List[String]): IO[ExitCode] = {
     val action = CliParser.parse(args, sys.env) match {
-      case Left(help)  => IO(println(help.toString())) //log.info(s"Command parsing failed: $help") //TODO: report error as json
+      case Left(help) =>
+        IO(println(help.toString())) //log.info(s"Command parsing failed: $help") //TODO: report error as json
       case Right(args) => module.use(runCli(args))
     }
 
     for {
       start <- timer.clock.realTime(TimeUnit.MILLISECONDS)
-      _     <- action
-      end   <- timer.clock.realTime(TimeUnit.MILLISECONDS)
-      _     <- log.info(s"Execution took: ${end - start} ms")
+      _ <- action.onError {
+        case e: Throwable => log.error(e)(s"alfred-jenkins failed processing $args")
+      }
+      end <- timer.clock.realTime(TimeUnit.MILLISECONDS)
+      _   <- log.info(s"Execution took: ${end - start} ms")
     } yield ExitCode.Success
   }
 
@@ -68,8 +71,9 @@ object AlfredJenkins extends IOApp { self =>
 
   private val module: Resource[IO, AlfredJenkinsModule] = {
     for {
-      clientValue      <- BlazeClientBuilder[IO](ExecutionContext.global).resource
-      environmentValue <- Resource.liftF(AlfredEnvironment.fromEnv.liftTo[IO].flatTap(env => log.info(s"AlfredEnvironment: $env")))
+      clientValue <- BlazeClientBuilder[IO](ExecutionContext.global).resource
+      environmentValue <- Resource.liftF(
+        AlfredEnvironment.fromEnv.liftTo[IO].flatTap(env => log.info(s"AlfredEnvironment: $env")))
       credentialsValue <- Resource.liftF(Credentials.create(environmentValue.workflowBundleId))
     } yield {
       new AlfredJenkinsModule {
