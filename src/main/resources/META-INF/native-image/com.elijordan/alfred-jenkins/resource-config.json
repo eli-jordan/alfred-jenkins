@@ -1,0 +1,10 @@
+{
+  "resources": [
+    {
+      "pattern": "logback.xml"
+    },
+    {
+      "pattern": "osxkeychain.so"
+    }
+  ]
+}

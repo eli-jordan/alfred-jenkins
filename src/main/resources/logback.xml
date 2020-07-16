@@ -1,0 +1,20 @@
+<configuration>
+
+    <variable name="ALFRED_JENKINS_LOG_DIR" value="${alfred_workflow_data:-/tmp}"/>
+
+    <appender name="FILE" class="ch.qos.logback.core.FileAppender">
+        <file>${ALFRED_JENKINS_LOG_DIR}/alfred-jenkins.log</file>
+        <append>true</append>
+        <immediateFlush>true</immediateFlush>
+        <encoder>
+            <pattern>[%thread] %highlight(%-5level) %cyan(%logger{15}) - %msg %n</pattern>
+        </encoder>
+    </appender>
+
+    <logger name="org.http4s.blaze.channel" level="WARN"/>
+    <logger name="alfred.jenkins" level="DEBUG"/>
+
+    <root level="INFO">
+        <appender-ref ref="FILE" />
+    </root>
+</configuration>
