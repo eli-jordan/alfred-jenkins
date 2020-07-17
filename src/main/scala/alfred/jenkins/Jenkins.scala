@@ -1,10 +1,9 @@
 package alfred.jenkins
 
-import java.io.File
-import java.nio.charset.StandardCharsets
-import java.nio.file.{Files, Paths}
+import java.nio.file.{Files, Path, Paths}
+import java.util.concurrent.TimeUnit
 
-import cats.effect.{ContextShift, IO}
+import cats.effect.{Clock, ContextShift, IO, Resource}
 import cats.implicits._
 import io.circe.syntax._
 import org.http4s.circe.CirceEntityDecoder._
@@ -13,10 +12,11 @@ import org.http4s.headers.{Accept, Authorization}
 import org.http4s.{BasicCredentials, MediaType, Request, Uri}
 
 import scala.concurrent.duration._
+import scala.io.Source
 
 /**
   * Combines the [[JenkinsClient]] and the [[JenkinsCache]] into a uniform interface for querying
-  * that ensure the cache is populated on read.
+  * that ensures the cache is populated on read.
   *
   * @param client The jenkins api client
   * @param cache the jenkins cache
@@ -108,6 +108,8 @@ class JenkinsClient(client: Client[IO], settings: Settings[AlfredJenkinsSettings
   }
 }
 
+
+
 /**
   * Caches data retrieved from the Jenkins API as local files. This makes the latency when
   * searching and browsing jobs much lower, at the expense of not having the most up to date
@@ -118,10 +120,9 @@ class JenkinsClient(client: Client[IO], settings: Settings[AlfredJenkinsSettings
   *  https://jenkins.com/job/MyCachedJob would have the response data stored in
   *  <cache_dir>/jenkins.com/job/MyCachedJob/cache.json
   *
-  * @param env The environment. This is just used to extract the cache directory
   * @param cacheTtl The time-to-live of cache entries.
   */
-class JenkinsCache(env: AlfredEnvironment, cacheTtl: FiniteDuration = 5.minutes) {
+class JenkinsCache(files: FileService, clock: Clock[IO], cacheTtl: FiniteDuration = 5.minutes) {
 
   /**
     * Fetch an unexpired entry from the cache.
@@ -129,24 +130,41 @@ class JenkinsCache(env: AlfredEnvironment, cacheTtl: FiniteDuration = 5.minutes)
     * @param key The key for the entry being looked up.
     * @return The cache entry if it exists and is not expired. Otherwise, None.
     */
-  def fetch(key: CacheKey): IO[Option[List[JenkinsJob]]] = IO {
+  def fetch(key: CacheKey): IO[Option[List[JenkinsJob]]] = {
+    isValidCacheEntry(key).flatMap {
+      case true  => fetchCacheEntry(key).map(Some.apply)
+      case false => IO.pure(None)
+    }
+  }
 
-    def isExpired(file: File): Boolean = {
-      val age = System.currentTimeMillis() - file.lastModified()
+  /**
+   * An entry is valid if it exists in the cache, and it is not older than the ttl
+   */
+  private def isValidCacheEntry(key: CacheKey): IO[Boolean] =
+    for {
+      exists <- files.exists(key.filePath)
+      isValid <- if (exists) {
+        isExpired(key).map(!_)
+      } else {
+        IO.pure(false)
+      }
+    } yield isValid
+
+  private def isExpired(key: CacheKey): IO[Boolean] =
+    for {
+      modifiedEpochMillis <- files.lastModified(key.filePath)
+      currentEpochMillis  <- clock.realTime(TimeUnit.MILLISECONDS)
+    } yield {
+      val age = currentEpochMillis - modifiedEpochMillis
       age.millis > cacheTtl
     }
 
-    val file = new File(env.workflowCacheDir, key.filePath)
-    if (file.exists() && file.isFile && !isExpired(file)) {
-      val cacheE = for {
-        json     <- io.circe.jawn.parseFile(file)
-        settings <- json.as[List[JenkinsJob]]
-      } yield settings
-      Some(cacheE.right.get)
-    } else {
-      None
-    }
-  }
+  private def fetchCacheEntry(key: CacheKey): IO[List[JenkinsJob]] =
+    for {
+      data <- files.readFile(key.filePath)
+      json <- io.circe.jawn.parse(data).liftTo[IO]
+      jobs <- json.as[List[JenkinsJob]].liftTo[IO]
+    } yield jobs
 
   /**
     * Store a cache entry.
@@ -155,21 +173,17 @@ class JenkinsCache(env: AlfredEnvironment, cacheTtl: FiniteDuration = 5.minutes)
     * @param data the data to be stored.
     * @return
     */
-  def store(key: CacheKey, data: List[JenkinsJob]): IO[Unit] = IO {
-    val json = data.asJson.noSpaces
-    val file = Paths.get(env.workflowCacheDir, key.filePath)
-    file.toFile.getParentFile.mkdirs()
-    Files.write(file, json.getBytes(StandardCharsets.UTF_8))
-  }
+  def store(key: CacheKey, data: List[JenkinsJob]): IO[Unit] =
+    files.writeFile(key.filePath, data.asJson.noSpaces)
 }
 
 case class CacheKey(host: String, path: String) {
-  def filePath: String = {
+  lazy val filePath: Path = {
     val normalised = if (path.endsWith("/")) {
       path.dropRight(1)
     } else {
       path
     }
-    s"$host/$normalised/cache.json"
+    Paths.get(s"$host/$normalised/cache.json")
   }
 }

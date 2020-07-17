@@ -1,7 +1,8 @@
 package alfred.jenkins
+import java.nio.file.Paths
 import java.util.concurrent.TimeUnit
 
-import cats.effect.{ContextShift, ExitCode, IO, IOApp, Resource}
+import cats.effect.{ContextShift, ExitCode, IO, IOApp, Resource, Timer}
 import cats.implicits._
 import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
 import io.circe.{Decoder, Encoder}
@@ -24,11 +25,13 @@ trait AlfredJenkinsModule {
   def credentials: Credentials
 
   implicit def contextShift: ContextShift[IO]
+  implicit def timer: Timer[IO]
 
-  private lazy val Settings      = new Settings[AlfredJenkinsSettings](environment)
-  private lazy val JenkinsCache  = new JenkinsCache(environment)
-  private lazy val JenkinsClient = new JenkinsClient(client, Settings, credentials)
-  private lazy val Jenkins       = new Jenkins(JenkinsClient, JenkinsCache)
+  private lazy val CacheFileService = new FileService(Paths.get(environment.workflowCacheDir))
+  private lazy val Settings         = new Settings[AlfredJenkinsSettings](environment)
+  private lazy val JenkinsCache     = new JenkinsCache(CacheFileService, timer.clock)
+  private lazy val JenkinsClient    = new JenkinsClient(client, Settings, credentials)
+  private lazy val Jenkins          = new Jenkins(JenkinsClient, JenkinsCache)
 
   private lazy val BrowseCommand = new BrowseCommand(Jenkins, Settings)
   private lazy val SearchCommand = new SearchCommand(Jenkins, Settings)
@@ -81,6 +84,7 @@ object AlfredJenkins extends IOApp { self =>
         override implicit def contextShift: ContextShift[IO] = self.contextShift
         override def environment: AlfredEnvironment          = environmentValue
         override def credentials: Credentials                = credentialsValue
+        override implicit def timer: Timer[IO]               = self.timer
       }
     }
   }
