@@ -35,4 +35,9 @@ object Icons {
   val Health40to59    = JenkinsIconRoot + "health-40to59.svg.png"
   val Health60to79    = JenkinsIconRoot + "health-60to79.svg.png"
   val Health80plus    = JenkinsIconRoot + "health-80plus.svg.png"
+
+  val RedBall    = JenkinsIconRoot + "red-ball.svg.png"
+  val BlueBall   = JenkinsIconRoot + "blue-ball.svg.png"
+  val YellowBall = JenkinsIconRoot + "yellow-ball.svg.png"
+  val GreyBall   = JenkinsIconRoot + "grey-ball.svg.png"
 }

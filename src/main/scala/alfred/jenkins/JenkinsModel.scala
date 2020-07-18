@@ -4,11 +4,10 @@ import io.circe.{Decoder, Encoder}
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 
 /**
- * This file contains case classes that map directly to the json data returned from the
- * jenkins API. Note however, that the fields that are present assume the filter parameter
- * defined in [[JenkinsClient#filter]]
- */
-
+  * This file contains case classes that map directly to the json data returned from the
+  * jenkins API. Note however, that the fields that are present assume the filter parameter
+  * defined in [[JenkinsClient#filter]]
+  */
 sealed abstract class JobType(val value: String) {
   def canHaveChildren: Boolean = this match {
     case JobType.Root            => true
@@ -84,14 +83,30 @@ object HealthReport {
 
 case class JenkinsBuild(
     _class: JobType,
+    description: Option[String],
+    number: Int,
     building: Boolean,
     displayName: String,
     fullDisplayName: String,
     result: Option[String],
+    timestamp: Long,
+    duration: Long,
     url: String
 )
 
 object JenkinsBuild {
   implicit val decoder: Decoder[JenkinsBuild] = deriveDecoder
   implicit val encoder: Encoder[JenkinsBuild] = deriveEncoder
+}
+
+case class JenkinsBuildHistory(
+    url: String,
+    displayName: String,
+    fullDisplayName: String,
+    builds: List[JenkinsBuild]
+)
+
+object JenkinsBuildHistory {
+  implicit val decoder: Decoder[JenkinsBuildHistory] = deriveDecoder
+  implicit val encoder: Encoder[JenkinsBuildHistory] = deriveEncoder
 }
