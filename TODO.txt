@@ -1,7 +1,19 @@
 
-* Drill into build history
+* (partly done)Drill into build history
    - Currently the workflow can only display jobs. Its not possible to drill into a particular job and
      see the build history.
+
+
+* Fix icon paths
+   - Currently the icon paths are hard coded to suit my system
+
+* Build and release process, including adding the info.plist to source control.
+   - Probably create an sbt plugin
+   - SVG -> PNG
+
+* Error handling and validation
+
+-----------
 
 * Favorites
    - Allow adding certain jobs to favorites, so they can be located quickly
@@ -10,5 +22,6 @@
    - The built-in fuzzy search in Alfred is not very good.
    - See if its feasible to use a custom fuzzy search implementation to make this better
 
-* Build and release process, including adding the info.plist to source control.
-   - Probably create an sbt plugin
+
+
+* Extract the common components into a library that can be reused to create new alfred workflows

@@ -7,7 +7,7 @@ sealed trait Args
 case class LoginArgs(url: String, username: String, password: String) extends Args
 case class BrowseArgs(path: Option[String])                           extends Args
 case class SearchArgs(path: Option[String])                           extends Args
-case object NoArgs extends Args
+case class BuildHistoryArgs(path: String)                             extends Args
 
 object CliParser {
 
@@ -22,42 +22,42 @@ object CliParser {
     (url, username, password).mapN(LoginArgs)
   }
 
-  private val browseCommand = Command(
+  val PathOptionName = "path"
+  private val pathOption = Opts
+    .env[String](
+      name = PathOptionName,
+      help = "The path to start browsing from"
+    )
+
+  val browseCommand = Command(
     name = "browse",
     header = "Browse the hierarchy of jenkins jobs"
   ) {
-
-    Opts
-      .env[String](
-        name = "path",
-        help = "The path to start browsing from"
-      )
-      .orNone
-      .map(BrowseArgs)
+    pathOption.orNone.map(BrowseArgs)
   }
 
-  private val searchCommand = Command(
+  val buildHistoryCommand = Command(
+    name = "build-history",
+    header = "Show the build history for the specified job"
+  ) {
+    pathOption.map(BuildHistoryArgs)
+  }
+
+  val searchCommand = Command(
     name = "search",
     header = "Search all jobs below a given path"
   ) {
-    Opts
-      .env[String](
-        name = "path",
-        help = "The path to start searching from"
-      )
-      .orNone
-      .map(SearchArgs)
+    pathOption.orNone.map(SearchArgs)
   }
 
   private val mainCommand = Command(
     name = "alfred-jenkins",
     header = "Alfred script filter for interacting with jenkins"
   ) {
-    val args = Opts.subcommand(loginCommand) orElse
+    Opts.subcommand(loginCommand) orElse
       Opts.subcommand(browseCommand) orElse
-      Opts.subcommand(searchCommand)
-
-    args.withDefault(NoArgs)
+      Opts.subcommand(searchCommand) orElse
+      Opts.subcommand(buildHistoryCommand)
   }
 
   def parse(args: List[String], env: Map[String, String]): Either[Help, Args] = {

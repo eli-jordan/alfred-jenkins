@@ -5,6 +5,7 @@ import java.util.concurrent.TimeUnit
 
 import cats.effect.{Clock, ContextShift, IO, Resource}
 import cats.implicits._
+import io.circe.Decoder
 import io.circe.syntax._
 import org.http4s.circe.CirceEntityDecoder._
 import org.http4s.client.Client
@@ -29,16 +30,26 @@ class Jenkins(client: JenkinsClient, cache: JenkinsCache)(implicit cs: ContextSh
     * Note: The `path` parameter is assumed to be a valid, fully qualified job path.
     *       e.g. https://jenkins.com/job/MyFolder
     */
-  def fetch(path: Uri): IO[List[JenkinsJob]] = {
+  def jobs(path: Uri): IO[List[JenkinsJob]] = {
     cache.fetch(toCacheKey(path)).flatMap {
       case Some(jobs) => IO.pure(jobs)
       case None =>
         for {
-          jobs <- client.fetch(path)
+          jobs <- client.listJobs(path)
           _    <- cache.store(toCacheKey(path), jobs)
         } yield jobs
     }
   }
+
+  /**
+   * Fetch the latest 20 builds for the specified job.
+   *
+   * Note:
+   *  1. The `job` parameter is assumed to be a valid, fully qualified path.
+   *  2. Since builds can be updated quite frequently, this is not cached.
+   */
+  def builds(job: Uri): IO[JenkinsBuildHistory] =
+    client.listBuilds(job)
 
   /**
     * Recursively scans all jobs that are under the specified path, returning only the
@@ -49,7 +60,7 @@ class Jenkins(client: JenkinsClient, cache: JenkinsCache)(implicit cs: ContextSh
     */
   def scan(path: Uri): IO[List[JenkinsJob]] = {
     for {
-      list <- fetch(path)
+      list <- jobs(path)
       (branchJobs, leafJobs) = list.partition(_._class.canHaveChildren)
       jobs <- branchJobs.parFlatTraverse { job =>
         scan(Uri.unsafeFromString(job.url))
@@ -77,8 +88,34 @@ class Jenkins(client: JenkinsClient, cache: JenkinsCache)(implicit cs: ContextSh
   * @param credentials the credentials accessor used to lookup the users password.
   */
 class JenkinsClient(client: Client[IO], settings: Settings[AlfredJenkinsSettings], credentials: Credentials) {
-  val filter =
-    "jobs[displayName,fullDisplayName,url,color,buildable,healthReport[description,score,iconUrl],lastBuild[building,result,displayName,fullDisplayName,url]]"
+
+  /**
+   * Specifies the fields thar are needed for a [[JenkinsBuild]]
+   */
+  val BuildFilter =
+    "number,displayName,fullDisplayName,description,result,url,building,timestamp,duration"
+
+  /**
+   * Specifies the fields that are needed for a [[JenkinsJobsList]]
+   */
+  val JobListFilter =
+    s"jobs[displayName,fullDisplayName,url,color,buildable,healthReport[description,score,iconUrl],lastBuild[$BuildFilter]]"
+
+  /**
+   * Specifies the fields needed for [[JenkinsBuildHistory]]
+   */
+  val BuildHistoryFilter =
+    s"displayName,fullDisplayName,url,builds[$BuildFilter]{,20}"
+
+  /**
+   * List build for the provided job
+   *
+   * Note: The `path` parameter is assumed to be a valid, fully qualified job path.
+   *        e.g. https://jenkins.com/job/MyFolder
+   */
+  def listBuilds(job: Uri): IO[JenkinsBuildHistory] = {
+    fetch[JenkinsBuildHistory](job, BuildHistoryFilter)
+  }
 
   /**
     * Fetch jobs one level below the provided path.
@@ -86,7 +123,11 @@ class JenkinsClient(client: Client[IO], settings: Settings[AlfredJenkinsSettings
     * Note: The `path` parameter is assumed to be a valid, fully qualified job path.
     *       e.g. https://jenkins.com/job/MyFolder
     */
-  def fetch(path: Uri): IO[List[JenkinsJob]] = {
+  def listJobs(path: Uri): IO[List[JenkinsJob]] = {
+    fetch[JenkinsJobsList](path, JobListFilter).map(_.jobs)
+  }
+
+  private def fetch[A: Decoder](path: Uri, filter: String): IO[A] = {
     for {
       credentials <- basicCredentials
       uri = path / "api" / "json" +? ("tree", filter)
@@ -96,8 +137,8 @@ class JenkinsClient(client: Client[IO], settings: Settings[AlfredJenkinsSettings
           Accept(MediaType.application.json),
           Authorization(credentials)
         )
-      jobs <- client.expect[JenkinsJobsList](request).map(_.jobs)
-    } yield jobs
+      value <- client.expect[A](request)
+    } yield value
   }
 
   private def basicCredentials: IO[BasicCredentials] = {
@@ -122,7 +163,7 @@ class JenkinsClient(client: Client[IO], settings: Settings[AlfredJenkinsSettings
   *
   * @param cacheTtl The time-to-live of cache entries.
   */
-class JenkinsCache(files: FileService, clock: Clock[IO], cacheTtl: FiniteDuration = 5.minutes) {
+class JenkinsCache(files: FileService, clock: Clock[IO], cacheTtl: FiniteDuration = 1.day) {
 
   /**
     * Fetch an unexpired entry from the cache.
