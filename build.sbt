@@ -1,3 +1,5 @@
+import scala.sys.process.{Process => SProcess}
+
 ThisBuild / scalaVersion := "2.13.2"
 ThisBuild / version := "0.1.0-SNAPSHOT"
 ThisBuild / organization := "com.elijordan"
@@ -20,6 +22,8 @@ val initAtBuild = List(
   "scala.collection.immutable.Seq$",
   "scala.collection.immutable.Vector$"
 )
+
+
 
 /**
   * Graal Native Image Notes
@@ -46,6 +50,11 @@ val initAtBuild = List(
   * 3. Any classes that are interacted with using reflection need to be enumerated. In this application its just logback and
   *    slf4j see META-INF/native-image/com.elijordan/alfred-jenkins/reflect-config.json
   */
+
+
+lazy val devLinkWorkflow = taskKey[Unit]("Links the workflow into the Alfred workflows directory")
+lazy val Dev = config("dev").withDescription("Development to allow scoping settings for local development install")
+
 lazy val root = (project in file("."))
   .settings(
     name := "alfred-jenkins",
@@ -60,7 +69,35 @@ lazy val root = (project in file("."))
       "--enable-http",
       "--enable-https"
     ),
-    mainClass := Some("alfred.jenkins.AlfredJenkins"),
+    mainClass in Compile := Some("alfred.jenkins.AlfredJenkins"),
+    alfredWorkflowName := "Jenkins",
+    alfredWorkflowExtraFiles := Seq(
+      (packageBin in GraalVMNativeImage).value
+      //TODO: images
+    ),
+    alfredWorkflowVariables := Map(
+      "ALFRED_JENKINS_COMMAND" -> "./alfred-jenkins"
+    ),
+
+    // TODO: This currently doesn't work.
+    // need to figure out how to override sbt settings in a particular scope
+    //
+//    devLinkWorkflow in Dev := {
+//      val stagingDir = Def.sequential(
+//        packageBin in Universal,
+//        alfredWorkflowStage in Dev
+//      ).value
+//
+//      val workflowsDir = "/Users/elias.jordan/Library/Application Support/Alfred/Alfred.alfredpreferences/workflows/"
+//      val cmd = Seq("ln", "-s", stagingDir.toString, workflowsDir + "user.workflow.jenkins")
+//      val code = SProcess(cmd).!
+//      if(code != 0) sys.error(s"Failed to link staging dir into alfred workflows directory. $cmd")
+//
+//    },
+//    alfredWorkflowVariables in Dev := Map(
+//      "ALFRED_JENKINS_COMMAND" -> (target.value / "universal" / "stage" / "bin" / "alfred-jenkins").toString
+//    ),
+//    alfredWorkflowExtraFiles in Dev := Seq.empty,
     libraryDependencies ++= Seq(
       "io.circe"              %% "circe-core"           % circeVersion,
       "io.circe"              %% "circe-generic"        % circeVersion,
@@ -77,3 +114,4 @@ lazy val root = (project in file("."))
   )
   .enablePlugins(JavaAppPackaging)
   .enablePlugins(GraalVMNativeImagePlugin)
+  .enablePlugins(AlfredWorkflowPlugin)
