@@ -1,0 +1,14 @@
+
+* Drill into build history
+   - Currently the workflow can only display jobs. Its not possible to drill into a particular job and
+     see the build history.
+
+* Favorites
+   - Allow adding certain jobs to favorites, so they can be located quickly
+
+* Fuzzy search
+   - The built-in fuzzy search in Alfred is not very good.
+   - See if its feasible to use a custom fuzzy search implementation to make this better
+
+* Build and release process, including adding the info.plist to source control.
+   - Probably create an sbt plugin
