@@ -29,15 +29,15 @@ object Icons {
   // Jenkins icons
 
   //TODO: Fix this path
-  val JenkinsIconRoot = "/Users/elias.jordan/code/alfred-jenkins/svgs/png/"
-  val Health00to19    = JenkinsIconRoot + "health-00to19.svg.png"
-  val Health20to29    = JenkinsIconRoot + "health-20to29.svg.png"
-  val Health40to59    = JenkinsIconRoot + "health-40to59.svg.png"
-  val Health60to79    = JenkinsIconRoot + "health-60to79.svg.png"
-  val Health80plus    = JenkinsIconRoot + "health-80plus.svg.png"
+  val JenkinsIconRoot = "icons/"
+  val Health00to19    = JenkinsIconRoot + "health-00to19.png"
+  val Health20to29    = JenkinsIconRoot + "health-20to29.png"
+  val Health40to59    = JenkinsIconRoot + "health-40to59.png"
+  val Health60to79    = JenkinsIconRoot + "health-60to79.png"
+  val Health80plus    = JenkinsIconRoot + "health-80plus.png"
 
-  val RedBall    = JenkinsIconRoot + "red-ball.svg.png"
-  val BlueBall   = JenkinsIconRoot + "blue-ball.svg.png"
-  val YellowBall = JenkinsIconRoot + "yellow-ball.svg.png"
-  val GreyBall   = JenkinsIconRoot + "grey-ball.svg.png"
+  val RedBall    = JenkinsIconRoot + "red-ball.png"
+  val BlueBall   = JenkinsIconRoot + "blue-ball.png"
+  val YellowBall = JenkinsIconRoot + "yellow-ball.png"
+  val GreyBall   = JenkinsIconRoot + "grey-ball.png"
 }

@@ -74,7 +74,6 @@ lazy val `workflow` = (project in file("workflow"))
     alfredWorkflowDir := baseDirectory.value.getParentFile / "alfred",
     alfredWorkflowExtraFiles := Seq(
       (packageBin in GraalVMNativeImage).value
-      //TODO: images
     ),
     alfredWorkflowVariables := Map(
       "ALFRED_JENKINS_COMMAND" -> "./alfred-jenkins"
