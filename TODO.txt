@@ -1,5 +1,5 @@
 
-* (partly done)Drill into build history
+* (done) Drill into build history
    - Currently the workflow can only display jobs. Its not possible to drill into a particular job and
      see the build history.
 
