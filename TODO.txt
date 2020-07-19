@@ -3,15 +3,33 @@
    - Currently the workflow can only display jobs. Its not possible to drill into a particular job and
      see the build history.
 
-
-* Fix icon paths
+* (done) Fix icon paths
    - Currently the icon paths are hard coded to suit my system
 
-* Build and release process, including adding the info.plist to source control.
+* (done)Build process, including adding the info.plist to source control.
    - Probably create an sbt plugin
    - SVG -> PNG
 
+* (done) Release process
+   - Publish workflow to github releases
+
+* Don't hard code the path to the native-image binary on my system
+
+* Update GH readme with usage instructions
+
+* Update workflow readme with getting started instructions
+   - How to run the login command
+   - How to allow the binary to run
+   - How to give the binary permissions to access the keychain
+
+* Tests / CI
+   - Add tests
+   - Run build in CI (GH actions)
+   - Can release also be done there?
+
 * Error handling and validation
+
+* Command to clear cache
 
 -----------
 
