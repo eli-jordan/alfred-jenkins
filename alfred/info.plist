@@ -99,7 +99,7 @@
 	<key>disabled</key>
 	<false/>
 	<key>name</key>
-	<string>Jenkins</string>
+	<string>Jenkins (Dev)</string>
 	<key>objects</key>
 	<array>
 		<dict>
@@ -283,7 +283,7 @@ $ALFRED_JENKINS_COMMAND "$SUBCOMMAND"
 				<key>keyword</key>
 				<string>jenkins-login</string>
 				<key>subtext</key>
-				<string>jenkins-login &lt;url&gt; &lt;username&gt; &lt;password&gt;</string>
+				<string><![CDATA[jenkins-login <url> <username> <password>]]></string>
 				<key>text</key>
 				<string>Login to Jenkins</string>
 				<key>withspace</key>
@@ -321,7 +321,8 @@ $ALFRED_JENKINS_COMMAND "$SUBCOMMAND"
 		</dict>
 	</array>
 	<key>readme</key>
-	<string></string>
+	<string>This is the alfred readme
+</string>
 	<key>uidata</key>
 	<dict>
 		<key>01E87D7F-F2D2-4465-BD5A-84BF3624DB2A</key>
@@ -384,13 +385,10 @@ $ALFRED_JENKINS_COMMAND "$SUBCOMMAND"
 	<key>variables</key>
 	<dict>
 		<key>ALFRED_JENKINS_COMMAND</key>
-		<string></string>
+		<string>./alfred-jenkins</string>
 	</dict>
-	<key>variablesdontexport</key>
-	<array>
-	</array>
 	<key>version</key>
-	<string></string>
+	<string>0.1.0-SNAPSHOT</string>
 	<key>webaddress</key>
 	<string>https://github.com/eli-jordan/alfred-jenkins</string>
 </dict>
