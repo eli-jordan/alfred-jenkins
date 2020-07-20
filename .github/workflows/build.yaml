@@ -32,6 +32,11 @@ jobs:
         run:  sbt workflow/clean workflow/test
       - name: Package
         run: sbt workflow/alfredWorkflowPackage
+      - name: Save the workflow as an artifact
+        uses: actions/upload-artifact@v1
+        with:
+          name: Jenkins.alfredworkflow
+          path: workflow/target/alfred/Jenkins.alfredworkflow
 #      - uses: codecov/codecov-action@v1
 #        with:
 #          token: ${{ secrets.CODECOV_TOKEN }}
