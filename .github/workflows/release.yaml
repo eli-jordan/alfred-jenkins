@@ -1,4 +1,4 @@
-name: Alfred Jenkins Release
+name: Release
 
 on:
   push:

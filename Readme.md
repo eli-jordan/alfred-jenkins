@@ -1,3 +1,5 @@
+
+![Alfred Jenkins CI](https://github.com/eli-jordan/alfred-jenkins/workflows/CI/badge.svg)
 # Alfred Jenkins
 
 This is a WIP alfred workflow for interacting with Jenkins
