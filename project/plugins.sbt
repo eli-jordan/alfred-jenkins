@@ -4,5 +4,8 @@ addSbtPlugin("com.dwijnand"      % "sbt-dynver"          % "4.1.1")
 
 libraryDependencies ++= Seq(
   // Used by AlfredWorkflowPlugin
-  "com.googlecode.plist" % "dd-plist" % "1.23"
+  "com.googlecode.plist" % "dd-plist" % "1.23",
+
+  // For JDK 11
+  "com.sun.activation" % "javax.activation" % "1.2.0"
 )

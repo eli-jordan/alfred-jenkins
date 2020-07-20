@@ -72,7 +72,7 @@ lazy val `alfred-jenkins` = (project in file("."))
 lazy val `workflow` = (project in file("workflow"))
   .settings(
     name := "alfred-jenkins",
-    graalVMNativeImageCommand := "/Users/elias.jordan/graalvm-ce-java11-20.1.0/Contents/Home/bin/native-image",
+//    graalVMNativeImageCommand := "/Users/elias.jordan/graalvm-ce-java11-20.1.0/Contents/Home/bin/native-image",
     graalVMNativeImageOptions := Seq(
       "--verbose",
       "-H:+TraceClassInitialization",
