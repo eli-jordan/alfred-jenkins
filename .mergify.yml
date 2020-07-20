@@ -1,0 +1,12 @@
+pull_request_rules:
+  - name: Automatically merge labelled PRs
+    conditions:
+      - "#approved-reviews-by>=0"
+      - "#changes-requested-reviews-by=0"
+      - "label=mergify:merge"
+      - status-success=build
+    actions:
+      merge:
+        method: squash
+        strict: true
+
