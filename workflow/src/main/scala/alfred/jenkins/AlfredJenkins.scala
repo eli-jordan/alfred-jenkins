@@ -26,22 +26,24 @@ object AlfredJenkinsSettings {
   implicit val decoder: Decoder[AlfredJenkinsSettings] = deriveDecoder
 }
 
+
 /**
   * Wiring all necessary components together.
   */
 trait AlfredJenkinsModule {
   def client: Client[IO]
   def environment: AlfredEnvironment
-  def credentials: Credentials
+  def credentials: CredentialService
 
   implicit def contextShift: ContextShift[IO]
   implicit def timer: Timer[IO]
 
   private lazy val CacheFileService = new FileService(Paths.get(environment.workflowCacheDir))
-  private lazy val Settings         = new Settings[AlfredJenkinsSettings](environment)
+  private lazy val DataFileService  = new FileService(Paths.get(environment.workflowDataDir))
+  private lazy val Settings         = new SettingsLive[AlfredJenkinsSettings](DataFileService)
   private lazy val JenkinsCache     = new JenkinsCache(CacheFileService, timer.clock)
-  private lazy val JenkinsClient    = new JenkinsClient(client, Settings, credentials)
-  private lazy val Jenkins          = new Jenkins(JenkinsClient, JenkinsCache)
+  private lazy val JenkinsClient    = new JenkinsClientLive(client, Settings, credentials)
+  private lazy val Jenkins          = new JenkinsLive(JenkinsClient, JenkinsCache)
 
   private lazy val BuildHistoryCommand = new BuildHistoryCommand(Jenkins)
   private lazy val BrowseCommand       = new BrowseCommand(Jenkins, Settings)
@@ -97,13 +99,13 @@ object AlfredJenkins extends IOApp { self =>
       clientValue <- BlazeClientBuilder[IO](ExecutionContext.global).resource
       environmentValue <- Resource.liftF(
         AlfredEnvironment.fromEnv.liftTo[IO].flatTap(env => log.info(s"AlfredEnvironment: $env")))
-      credentialsValue <- Resource.liftF(Credentials.create(environmentValue.workflowBundleId))
+      credentialsValue <- Resource.liftF(CredentialService.create(environmentValue.workflowBundleId))
     } yield {
       new AlfredJenkinsModule {
         override def client: Client[IO]                      = clientValue
         override implicit def contextShift: ContextShift[IO] = self.contextShift
         override def environment: AlfredEnvironment          = environmentValue
-        override def credentials: Credentials                = credentialsValue
+        override def credentials: CredentialService          = credentialsValue
         override implicit def timer: Timer[IO]               = self.timer
       }
     }

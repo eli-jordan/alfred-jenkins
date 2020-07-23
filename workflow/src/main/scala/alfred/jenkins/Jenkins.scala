@@ -1,9 +1,9 @@
 package alfred.jenkins
 
-import java.nio.file.{Files, Path, Paths}
+import java.nio.file.{Path, Paths}
 import java.util.concurrent.TimeUnit
 
-import cats.effect.{Clock, ContextShift, IO, Resource}
+import cats.effect.{Clock, ContextShift, IO}
 import cats.implicits._
 import io.circe.Decoder
 import io.circe.syntax._
@@ -13,7 +13,34 @@ import org.http4s.headers.{Accept, Authorization}
 import org.http4s.{BasicCredentials, MediaType, Request, Uri}
 
 import scala.concurrent.duration._
-import scala.io.Source
+
+trait Jenkins {
+
+  /**
+    * Fetch jobs one level below the provided path.
+    *
+    * Note: The `path` parameter is assumed to be a valid, fully qualified job path.
+    *       e.g. https://jenkins.com/job/MyFolder
+    */
+  def jobs(path: Uri): IO[List[JenkinsJob]]
+
+  /**
+    * Fetch the latest 20 builds for the specified job.
+    *
+    * Note:
+    *  1. The `job` parameter is assumed to be a valid, fully qualified path.
+    */
+  def builds(job: Uri): IO[JenkinsBuildHistory]
+
+  /**
+    * Recursively scans all jobs that are under the specified path, returning only the
+    * leaf nodes that are found.
+    *
+    * Note: The `path` parameter is assumed to be a valid, fully qualified job path.
+    *       e.g. https://jenkins.com/job/MyFolder
+    */
+  def scan(path: Uri): IO[List[JenkinsJob]]
+}
 
 /**
   * Combines the [[JenkinsClient]] and the [[JenkinsCache]] into a uniform interface for querying
@@ -22,15 +49,9 @@ import scala.io.Source
   * @param client The jenkins api client
   * @param cache the jenkins cache
   */
-class Jenkins(client: JenkinsClient, cache: JenkinsCache)(implicit cs: ContextShift[IO]) {
+class JenkinsLive(client: JenkinsClient, cache: JenkinsCache)(implicit cs: ContextShift[IO]) extends Jenkins {
 
-  /**
-    * Fetch jobs one level below the provided path.
-    *
-    * Note: The `path` parameter is assumed to be a valid, fully qualified job path.
-    *       e.g. https://jenkins.com/job/MyFolder
-    */
-  def jobs(path: Uri): IO[List[JenkinsJob]] = {
+  override def jobs(path: Uri): IO[List[JenkinsJob]] = {
     cache.fetch(toCacheKey(path)).flatMap {
       case Some(jobs) => IO.pure(jobs)
       case None =>
@@ -42,23 +63,12 @@ class Jenkins(client: JenkinsClient, cache: JenkinsCache)(implicit cs: ContextSh
   }
 
   /**
-   * Fetch the latest 20 builds for the specified job.
-   *
-   * Note:
-   *  1. The `job` parameter is assumed to be a valid, fully qualified path.
-   *  2. Since builds can be updated quite frequently, this is not cached.
-   */
-  def builds(job: Uri): IO[JenkinsBuildHistory] =
+    * Note: Since builds can be updated quite frequently, this is not cached.
+    */
+  override def builds(job: Uri): IO[JenkinsBuildHistory] =
     client.listBuilds(job)
 
-  /**
-    * Recursively scans all jobs that are under the specified path, returning only the
-    * leaf nodes that are found.
-    *
-    * Note: The `path` parameter is assumed to be a valid, fully qualified job path.
-    *       e.g. https://jenkins.com/job/MyFolder
-    */
-  def scan(path: Uri): IO[List[JenkinsJob]] = {
+  override def scan(path: Uri): IO[List[JenkinsJob]] = {
     for {
       list <- jobs(path)
       (branchJobs, leafJobs) = list.partition(_._class.canHaveChildren)
@@ -80,6 +90,11 @@ class Jenkins(client: JenkinsClient, cache: JenkinsCache)(implicit cs: ContextSh
   }
 }
 
+trait JenkinsClient {
+  def listBuilds(job: Uri): IO[JenkinsBuildHistory]
+  def listJobs(path: Uri): IO[List[JenkinsJob]]
+}
+
 /**
   * A Jenkins API client that allows fetching jobs and their build status.
   *
@@ -87,32 +102,33 @@ class Jenkins(client: JenkinsClient, cache: JenkinsCache)(implicit cs: ContextSh
   * @param settings the settings accessor used to lookup the jenkins server URL and the user name to authenticate with.
   * @param credentials the credentials accessor used to lookup the users password.
   */
-class JenkinsClient(client: Client[IO], settings: Settings[AlfredJenkinsSettings], credentials: Credentials) {
+class JenkinsClientLive(client: Client[IO], settings: Settings[AlfredJenkinsSettings], credentials: CredentialService)
+  extends JenkinsClient {
 
   /**
-   * Specifies the fields thar are needed for a [[JenkinsBuild]]
-   */
+    * Specifies the fields thar are needed for a [[JenkinsBuild]]
+    */
   val BuildFilter =
     "number,displayName,fullDisplayName,description,result,url,building,timestamp,duration"
 
   /**
-   * Specifies the fields that are needed for a [[JenkinsJobsList]]
-   */
+    * Specifies the fields that are needed for a [[JenkinsJobsList]]
+    */
   val JobListFilter =
     s"jobs[displayName,fullDisplayName,url,color,buildable,healthReport[description,score,iconUrl],lastBuild[$BuildFilter]]"
 
   /**
-   * Specifies the fields needed for [[JenkinsBuildHistory]]
-   */
+    * Specifies the fields needed for [[JenkinsBuildHistory]]
+    */
   val BuildHistoryFilter =
     s"displayName,fullDisplayName,url,builds[$BuildFilter]{,20}"
 
   /**
-   * List build for the provided job
-   *
-   * Note: The `path` parameter is assumed to be a valid, fully qualified job path.
-   *        e.g. https://jenkins.com/job/MyFolder
-   */
+    * List build for the provided job
+    *
+    * Note: The `path` parameter is assumed to be a valid, fully qualified job path.
+    *        e.g. https://jenkins.com/job/MyFolder
+    */
   def listBuilds(job: Uri): IO[JenkinsBuildHistory] = {
     fetch[JenkinsBuildHistory](job, BuildHistoryFilter)
   }
@@ -149,8 +165,6 @@ class JenkinsClient(client: Client[IO], settings: Settings[AlfredJenkinsSettings
   }
 }
 
-
-
 /**
   * Caches data retrieved from the Jenkins API as local files. This makes the latency when
   * searching and browsing jobs much lower, at the expense of not having the most up to date
@@ -179,8 +193,8 @@ class JenkinsCache(files: FileService, clock: Clock[IO], cacheTtl: FiniteDuratio
   }
 
   /**
-   * An entry is valid if it exists in the cache, and it is not older than the ttl
-   */
+    * An entry is valid if it exists in the cache, and it is not older than the ttl
+    */
   private def isValidCacheEntry(key: CacheKey): IO[Boolean] =
     for {
       exists <- files.exists(key.filePath)

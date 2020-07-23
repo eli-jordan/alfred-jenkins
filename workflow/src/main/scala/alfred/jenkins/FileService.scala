@@ -20,7 +20,11 @@ class FileService(root: Path) {
     * that are within it.
     */
   def listDir(path: Path): IO[List[Path]] = IO {
-    fromRoot(path).toFile.listFiles().toList.map(_.toPath)
+    fromRoot(path).toFile
+      .listFiles()
+      .toList
+      .map(_.toPath)
+      .map(root.relativize)
   }
 
   /**

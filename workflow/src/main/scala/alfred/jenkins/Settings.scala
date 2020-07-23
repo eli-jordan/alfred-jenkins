@@ -1,30 +1,43 @@
 package alfred.jenkins
 
-import java.io.File
-import java.nio.charset.StandardCharsets
-import java.nio.file.{Files, Paths}
+import java.nio.file.Paths
 
 import cats.effect.IO
-import io.circe.{Decoder, Encoder}
-import io.circe.syntax._
 import cats.implicits._
+import io.circe.syntax._
+import io.circe.{Decoder, Encoder}
 
-class Settings[S: Encoder: Decoder](env: AlfredEnvironment) {
-
-  private val settingsFile = s"${env.workflowDataDir}/settings.json"
-
-  def save(settings: S): IO[Unit] = IO {
-    val json = settings.asJson.spaces2
-    Files.write(Paths.get(settingsFile), json.getBytes(StandardCharsets.UTF_8))
-  }
-
-  def fetch: IO[S] = {
-    val settingsE = for {
-      json <- io.circe.jawn.parseFile(new File(settingsFile))
-      settings <- json.as[S]
-    } yield settings
-
-    settingsE.liftTo[IO]
-  }
+trait Settings[S] {
+  def save(settings: S): IO[Unit]
+  def fetch: IO[S]
 }
 
+/**
+ * Responsible for reading and saving settings data for the workflow.
+ * Settings are stored as a single json encoded file.
+ */
+class SettingsLive[S: Encoder: Decoder](files: FileService) extends Settings[S] {
+
+  private val settingsFile = Paths.get("settings.json")
+
+  /**
+   * Serialize and persist the settings.
+   *
+   * @param settings the settings object
+   */
+  def save(settings: S): IO[Unit] = {
+    val json = settings.asJson.spaces2
+    files.writeFile(settingsFile, json)
+  }
+
+  /**
+   * Lookup and deserialize the settings
+   */
+  def fetch: IO[S] = {
+    for {
+      data     <- files.readFile(settingsFile)
+      json     <- io.circe.jawn.parse(data).liftTo[IO]
+      settings <- json.as[S].liftTo[IO]
+    } yield settings
+  }
+}

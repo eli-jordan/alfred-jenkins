@@ -1,0 +1,44 @@
+{
+  "_class": "com.cloudbees.hudson.plugins.folder.Folder",
+  "jobs": [
+    {
+      "_class": "org.jenkinsci.plugins.workflow.multibranch.WorkflowMultiBranchProject",
+      "displayName": "Test2",
+      "fullDisplayName": "Test2 » Test2",
+      "url": "https://jenkins.com/job/Test2/job/Test2/",
+      "healthReport": [
+        {
+          "description": "Worst health: Test2 » Test2 » master: Build stability: All recent builds failed.",
+          "iconUrl": "health-00to19.png",
+          "score": 0
+        }
+      ]
+    },
+    {
+      "_class": "org.jenkinsci.plugins.workflow.multibranch.WorkflowMultiBranchProject",
+      "displayName": "Test2-hadoop",
+      "fullDisplayName": "Test2 » Test2-hadoop",
+      "url": "https://jenkins.com/job/Test2/job/Test2-hadoop/",
+      "healthReport": [
+        {
+          "description": "Worst health: Test2 » Test2-hadoop » PR-49: Build stability: 4 out of the last 5 builds failed.",
+          "iconUrl": "health-00to19.png",
+          "score": 20
+        }
+      ]
+    },
+    {
+      "_class": "org.jenkinsci.plugins.workflow.multibranch.WorkflowMultiBranchProject",
+      "displayName": "Test2-serialization",
+      "fullDisplayName": "Test2 » Test2-serialization",
+      "url": "https://jenkins.com/job/Test2/job/Test2-serialization/",
+      "healthReport": [
+        {
+          "description": "Worst health: Test2 » Test2-serialization » PR-72: Build stability: All recent builds failed.",
+          "iconUrl": "health-00to19.png",
+          "score": 0
+        }
+      ]
+    }
+  ]
+}

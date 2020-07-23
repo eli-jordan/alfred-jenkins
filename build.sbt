@@ -103,7 +103,8 @@ lazy val `workflow` = (project in file("workflow"))
       "org.http4s"            %% "http4s-dsl"           % "0.21.6",
       "com.monovore"          %% "decline"              % "1.0.0",
       "io.chrisdavenport"     %% "log4cats-slf4j"       % "1.1.1",
-      "ch.qos.logback"        % "logback-classic"       % "1.2.3"
+      "ch.qos.logback"        % "logback-classic"       % "1.2.3",
+      "org.scalatest"         %% "scalatest"            % "3.2.0" % Test
     )
   )
   .enablePlugins(JavaAppPackaging)

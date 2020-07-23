@@ -28,7 +28,6 @@ object Icons {
 
   // Jenkins icons
 
-  //TODO: Fix this path
   val JenkinsIconRoot = "icons/"
   val Health00to19    = JenkinsIconRoot + "health-00to19.png"
   val Health20to29    = JenkinsIconRoot + "health-20to29.png"

@@ -1,0 +1,90 @@
+{
+  "_class": "com.cloudbees.hudson.plugins.folder.Folder",
+  "jobs": [
+    {
+      "_class": "org.jenkinsci.plugins.workflow.multibranch.WorkflowMultiBranchProject",
+      "displayName": "BNL",
+      "fullDisplayName": "Test3 » BNL",
+      "url": "https://jenkins.com/job/Test3/job/BNL/",
+      "healthReport": [
+        {
+          "description": "Worst health: Test3 » BNL » PR-10: Test Result: 2 tests failing out of a total of 2 tests.",
+          "iconUrl": "health-00to19.png",
+          "score": 0
+        }
+      ]
+    },
+    {
+      "_class": "org.jenkinsci.plugins.workflow.multibranch.WorkflowMultiBranchProject",
+      "displayName": "Test3-C",
+      "fullDisplayName": "Test3 » Test3-C",
+      "url": "https://jenkins.com/job/Test3/job/Test3-C/",
+      "healthReport": [
+        {
+          "description": "Worst health: Test3 » Test3-C » PR-104: Build stability: All recent builds failed.",
+          "iconUrl": "health-00to19.png",
+          "score": 0
+        }
+      ]
+    },
+    {
+      "_class": "com.cloudbees.hudson.plugins.folder.Folder",
+      "displayName": "Test3-FA",
+      "fullDisplayName": "Test3 » Test3-FA",
+      "url": "https://jenkins.com/job/Test3/job/Funnel%20Analytics/",
+      "healthReport": []
+    },
+    {
+      "_class": "org.jenkinsci.plugins.workflow.multibranch.WorkflowMultiBranchProject",
+      "displayName": "Test3-AS",
+      "fullDisplayName": "Test3 » Test3-AS",
+      "url": "https://jenkins.com/job/Test3/job/Test3-AS/",
+      "healthReport": []
+    },
+    {
+      "_class": "org.jenkinsci.plugins.workflow.multibranch.WorkflowMultiBranchProject",
+      "displayName": "Test3-ARA",
+      "fullDisplayName": "Test3 » Test3-ARA",
+      "url": "https://jenkins.com/job/Test3/job/Test3-ARA/",
+      "healthReport": [
+        {
+          "description": "Worst health: Test3 » Test3-ARA » task/BR-20-with-jobs: Build stability: 4 out of the last 5 builds failed.",
+          "iconUrl": "health-00to19.png",
+          "score": 20
+        }
+      ]
+    },
+    {
+      "_class": "hudson.model.FreeStyleProject",
+      "displayName": "Test3-ADS",
+      "fullDisplayName": "Test3 » Test3-ADS",
+      "url": "https://jenkins.com/job/Test3/job/Test3-ADS/",
+      "buildable": true,
+      "color": "blue",
+      "healthReport": [
+        {
+          "description": "Test Result: 0 tests failing out of a total of 137 tests.",
+          "iconUrl": "health-80plus.png",
+          "score": 100
+        },
+        {
+          "description": "Build stability: No recent builds failed.",
+          "iconUrl": "health-80plus.png",
+          "score": 100
+        }
+      ],
+      "lastBuild": {
+        "_class": "hudson.model.FreeStyleBuild",
+        "building": false,
+        "description": null,
+        "displayName": "#12",
+        "duration": 75896,
+        "fullDisplayName": "Test3 » Test3-ADS #12",
+        "number": 12,
+        "result": "SUCCESS",
+        "timestamp": 1540413045902,
+        "url": "https://jenkins.com/job/Test3/job/Test3-ADS/12/"
+      }
+    }
+  ]
+}

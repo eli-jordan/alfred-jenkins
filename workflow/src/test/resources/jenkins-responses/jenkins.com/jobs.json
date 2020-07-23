@@ -1,0 +1,44 @@
+{
+  "_class": "hudson.model.Hudson",
+  "jobs": [
+    {
+      "_class": "com.cloudbees.hudson.plugins.folder.Folder",
+      "displayName": "Test 1",
+      "fullDisplayName": "Test 1",
+      "url": "https://jenkins.com/job/Test1/",
+      "healthReport": [
+        {
+          "description": "Worst health: CloudCre10 » test1-branches: Worst health: Test1 » test1-branches » 2020-05-Setup-documentation-update: Build stability: All recent builds failed.",
+          "iconUrl": "health-00to19.png",
+          "score": 0
+        }
+      ]
+    },
+    {
+      "_class": "com.cloudbees.hudson.plugins.folder.Folder",
+      "displayName": "Test 2",
+      "fullDisplayName": "Test 2",
+      "url": "https://jenkins.com/job/Test2/",
+      "healthReport": [
+        {
+          "description": "Worst health: Common » Test2: Worst health: Test2 » test2 » master: Build stability: All recent builds failed.",
+          "iconUrl": "health-00to19.png",
+          "score": 0
+        }
+      ]
+    },
+    {
+      "_class": "com.cloudbees.hudson.plugins.folder.Folder",
+      "displayName": "Test 3",
+      "fullDisplayName": "Test 3",
+      "url": "https://jenkins.com/job/Test3/",
+      "healthReport": [
+        {
+          "description": "Worst health: CX » Test3: Worst health: Test3 » Test3 » PR-10: Test Result: 2 tests failing out of a total of 2 tests.",
+          "iconUrl": "health-00to19.png",
+          "score": 0
+        }
+      ]
+    }
+  ]
+}
