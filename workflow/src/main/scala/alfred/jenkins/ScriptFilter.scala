@@ -33,8 +33,8 @@ object ItemType {
   val Values = List(Default, File, FileSkipCheck)
 
   implicit val encoder: Encoder[ItemType] = Encoder[String].contramap(_.value)
-
 }
+
 case class Item(
     uid: Option[String] = None,
     `type`: ItemType = ItemType.Default,

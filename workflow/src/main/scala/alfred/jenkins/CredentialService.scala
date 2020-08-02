@@ -16,7 +16,7 @@ trait Account {
  * @param service The keychain "service" name. This should be the workflow bundle id.
  * @param keychain The main interface presented by the underlying java library.
  */
-class Credentials(service: String, keychain: OSXKeychain) {
+class CredentialService(service: String, keychain: OSXKeychain) {
 
   /**
    * Save a password in the keychain.
@@ -28,7 +28,11 @@ class Credentials(service: String, keychain: OSXKeychain) {
    * @param password the password value
    */
   def save(account: Account, password: String): IO[Unit] = IO {
-    keychain.addGenericPassword(service, account.name, password)
+    if(keychain.findGenericPassword(service, account.name).isPresent) {
+      keychain.modifyGenericPassword(service, account.name, password)
+    } else {
+      keychain.addGenericPassword(service, account.name, password)
+    }
   }
 
   /**
@@ -50,9 +54,9 @@ class Credentials(service: String, keychain: OSXKeychain) {
   }
 }
 
-object Credentials {
-  def create(service: String): IO[Credentials] =
+object CredentialService {
+  def create(service: String): IO[CredentialService] =
     IO(OSXKeychain.getInstance).map { keyring =>
-      new Credentials(service, keyring)
+      new CredentialService(service, keyring)
     }
 }

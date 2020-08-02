@@ -39,25 +39,26 @@ object JenkinsItem {
   }
 
   object Job {
-    def items(jobs: List[JenkinsJob]): List[Item] = {
-      jobs.map { job =>
-        val action = if (job._class.canHaveChildren) {
-          Variables.BrowseCommandName
-        } else {
-          Variables.BuildHistoryCommandName
-        }
-        Item(
-          title = job.displayName,
-          subtitle = Some(job.fullDisplayName),
-          icon = Some(Icon(path = icon(job))),
-          `match` = Some(toMatchString(job)),
-          variables = Map(
-            Variables.PathVarName    -> job.url,
-            Variables.OpenUrlVarName -> job.url,
-            Variables.ActionVarName  -> action
-          )
-        )
+    def items(jobs: List[JenkinsJob]): List[Item] =
+      jobs.map(item)
+
+    private[jenkins] def item(job: JenkinsJob): Item = {
+      val action = if (job._class.canHaveChildren) {
+        Variables.BrowseCommandName
+      } else {
+        Variables.BuildHistoryCommandName
       }
+      Item(
+        title = job.displayName,
+        subtitle = Some(job.fullDisplayName),
+        icon = Some(Icon(path = icon(job))),
+        `match` = Some(toMatchString(job)),
+        variables = Map(
+          Variables.PathVarName    -> job.url,
+          Variables.OpenUrlVarName -> job.url,
+          Variables.ActionVarName  -> action
+        )
+      )
     }
 
     /**
@@ -100,22 +101,24 @@ object JenkinsItem {
 
   object Builds {
     def items(history: JenkinsBuildHistory): List[Item] = {
-      history.builds.map { build =>
-        Item(
-          title = build.displayName,
-          subtitle = Some(buildSubtitle(build)),
-          icon = Some(Icon(path = icon(build))),
-          // Configure the variables so that if an item is selected
-          // we just open the same build history again by setting
-          // the path to the jobs url (not the build url) and the action
-          // to build-history
-          variables = Map(
-            Variables.PathVarName   -> history.url,
-            Variables.ActionVarName -> Variables.BuildHistoryCommandName,
-            Variables.OpenUrlVarName -> build.url
-          )
+      history.builds.map(build => item(build, history.url))
+    }
+
+    private[jenkins] def item(build: JenkinsBuild, parentUrl: String): Item = {
+      Item(
+        title = build.displayName,
+        subtitle = Some(buildSubtitle(build)),
+        icon = Some(Icon(path = icon(build))),
+        // Configure the variables so that if an item is selected
+        // we just open the same build history again by setting
+        // the path to the jobs url (not the build url) and the action
+        // to build-history
+        variables = Map(
+          Variables.PathVarName   -> parentUrl,
+          Variables.ActionVarName -> Variables.BuildHistoryCommandName,
+          Variables.OpenUrlVarName -> build.url
         )
-      }
+      )
     }
 
     private def buildSubtitle(build: JenkinsBuild): String = {

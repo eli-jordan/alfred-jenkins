@@ -1,0 +1,217 @@
+{
+  "_class": "com.cloudbees.hudson.plugins.folder.Folder",
+  "jobs": [
+    {
+      "_class": "org.jenkinsci.plugins.workflow.job.WorkflowJob",
+      "displayName": "Test1-templates-deploy",
+      "fullDisplayName": "Test1 » Test1-templates-deploy",
+      "url": "https://jenkins.com/job/Test1/job/Test1-templates-deploy/",
+      "buildable": true,
+      "color": "blue",
+      "healthReport": [
+        {
+          "description": "Build stability: 2 out of the last 5 builds failed.",
+          "iconUrl": "health-40to59.png",
+          "score": 60
+        }
+      ],
+      "lastBuild": {
+        "_class": "org.jenkinsci.plugins.workflow.job.WorkflowRun",
+        "building": false,
+        "description": null,
+        "displayName": "#639",
+        "duration": 127797,
+        "fullDisplayName": "Test1 » Test1-templates-deploy #639",
+        "number": 639,
+        "result": "SUCCESS",
+        "timestamp": 1596232268968,
+        "url": "https://jenkins.com/job/Test1/job/Test1-templates-deploy/639/"
+      }
+    },
+    {
+      "_class": "org.jenkinsci.plugins.workflow.job.WorkflowJob",
+      "displayName": "coordinator-deploy",
+      "fullDisplayName": "Test1 » coordinator-deploy",
+      "url": "https://jenkins.com/job/Test1/job/coordinator-deploy/",
+      "buildable": true,
+      "color": "red",
+      "healthReport": [
+        {
+          "description": "Build stability: 3 out of the last 5 builds failed.",
+          "iconUrl": "health-20to39.png",
+          "score": 40
+        }
+      ],
+      "lastBuild": {
+        "_class": "org.jenkinsci.plugins.workflow.job.WorkflowRun",
+        "building": false,
+        "description": null,
+        "displayName": "#197",
+        "duration": 1804914,
+        "fullDisplayName": "Test1 » coordinator-deploy #197",
+        "number": 197,
+        "result": "FAILURE",
+        "timestamp": 1595559160911,
+        "url": "https://jenkins.com/job/Test1/job/coordinator-deploy/197/"
+      }
+    },
+    {
+      "_class": "org.jenkinsci.plugins.workflow.job.WorkflowJob",
+      "displayName": "eli-test-delete-acks",
+      "fullDisplayName": "Test1 » eli-test-delete-acks",
+      "url": "https://jenkins.com/job/Test1/job/eli-test-delete-acks/",
+      "buildable": true,
+      "color": "blue",
+      "healthReport": [
+        {
+          "description": "Build stability: 1 out of the last 5 builds failed.",
+          "iconUrl": "health-60to79.png",
+          "score": 80
+        }
+      ],
+      "lastBuild": {
+        "_class": "org.jenkinsci.plugins.workflow.job.WorkflowRun",
+        "building": false,
+        "description": null,
+        "displayName": "#9",
+        "duration": 106212,
+        "fullDisplayName": "Test1 » eli-test-delete-acks #9",
+        "number": 9,
+        "result": "SUCCESS",
+        "timestamp": 1582285584539,
+        "url": "https://jenkins.com/job/Test1/job/eli-test-delete-acks/9/"
+      }
+    },
+    {
+      "_class": "org.jenkinsci.plugins.workflow.multibranch.WorkflowMultiBranchProject",
+      "displayName": "Test1-branches",
+      "fullDisplayName": "Test1 » Test1-branches",
+      "url": "https://jenkins.com/job/Test1/job/mart-framework/",
+      "healthReport": [
+        {
+          "description": "Worst health: Test1 » Test1-branches » 2020-05-Setup-documentation-update: Build stability: All recent builds failed.",
+          "iconUrl": "health-00to19.png",
+          "score": 0
+        }
+      ]
+    },
+    {
+      "_class": "org.jenkinsci.plugins.workflow.multibranch.WorkflowMultiBranchProject",
+      "displayName": "Test1-master",
+      "fullDisplayName": "Test1 » Test1-master",
+      "url": "https://jenkins.com/job/Test1/job/mart-framework-master/",
+      "healthReport": [
+        {
+          "description": "Worst health: Test1 » Test1-master » master: Build stability: 2 out of the last 5 builds failed.",
+          "iconUrl": "health-40to59.png",
+          "score": 60
+        }
+      ]
+    },
+    {
+      "_class": "org.jenkinsci.plugins.workflow.multibranch.WorkflowMultiBranchProject",
+      "displayName": "mart-framework-templates",
+      "fullDisplayName": "Test1 » mart-framework-templates",
+      "url": "https://jenkins.com/job/Test1/job/mart-framework-templates/",
+      "healthReport": [
+        {
+          "description": "Worst health: Test1 » mart-framework-templates » add-ingress-uptime-checks-and-alerts-to-cc10: Build stability: All recent builds failed.",
+          "iconUrl": "health-00to19.png",
+          "score": 0
+        }
+      ]
+    },
+    {
+      "_class": "org.jenkinsci.plugins.workflow.job.WorkflowJob",
+      "displayName": "nightly-tests",
+      "fullDisplayName": "Test1 » nightly-tests",
+      "url": "https://jenkins.com/job/Test1/job/nightly-tests/",
+      "buildable": true,
+      "color": "blue",
+      "healthReport": [
+        {
+          "description": "Test Result: 0 tests failing out of a total of 7 tests.",
+          "iconUrl": "health-80plus.png",
+          "score": 100
+        },
+        {
+          "description": "Build stability: No recent builds failed.",
+          "iconUrl": "health-80plus.png",
+          "score": 100
+        }
+      ],
+      "lastBuild": {
+        "_class": "org.jenkinsci.plugins.workflow.job.WorkflowRun",
+        "building": false,
+        "description": null,
+        "displayName": "#465",
+        "duration": 1325307,
+        "fullDisplayName": "Test1 » nightly-tests #465",
+        "number": 465,
+        "result": "SUCCESS",
+        "timestamp": 1596331440423,
+        "url": "https://jenkins.com/job/Test1/job/nightly-tests/465/"
+      }
+    },
+    {
+      "_class": "org.jenkinsci.plugins.workflow.multibranch.WorkflowMultiBranchProject",
+      "displayName": "Test1-Client",
+      "fullDisplayName": "Test1 » Test1-Client",
+      "url": "https://jenkins.com/job/Test1/job/sbt-mart-maintainer/",
+      "healthReport": [
+        {
+          "description": "Worst health: Test1 » Test1-Client » feat/grafana-dag: Build stability: All recent builds failed.",
+          "iconUrl": "health-00to19.png",
+          "score": 0
+        }
+      ]
+    },
+    {
+      "_class": "org.jenkinsci.plugins.workflow.multibranch.WorkflowMultiBranchProject",
+      "displayName": "stackdriver-exporter-build",
+      "fullDisplayName": "Test1 » stackdriver-exporter-build",
+      "url": "https://jenkins.com/job/Test1/job/stackdriver-exporter-build/",
+      "healthReport": [
+        {
+          "description": "Worst health: Test1 » stackdriver-exporter-build » master: Build stability: 1 out of the last 2 builds failed.",
+          "iconUrl": "health-40to59.png",
+          "score": 50
+        }
+      ]
+    },
+    {
+      "_class": "org.jenkinsci.plugins.workflow.multibranch.WorkflowMultiBranchProject",
+      "displayName": "tapad-deployment-types",
+      "fullDisplayName": "Test1 » tapad-deployment-types",
+      "url": "https://jenkins.com/job/Test1/job/tapad-deployment-types/",
+      "healthReport": []
+    },
+    {
+      "_class": "org.jenkinsci.plugins.workflow.job.WorkflowJob",
+      "displayName": "user-mamagement-group-sync",
+      "fullDisplayName": "Test1 » user-mamagement-group-sync",
+      "url": "https://jenkins.com/job/Test1/job/user-mamagement-group-sync/",
+      "buildable": true,
+      "color": "blue",
+      "healthReport": [
+        {
+          "description": "Build stability: No recent builds failed.",
+          "iconUrl": "health-80plus.png",
+          "score": 100
+        }
+      ],
+      "lastBuild": {
+        "_class": "org.jenkinsci.plugins.workflow.job.WorkflowRun",
+        "building": false,
+        "description": null,
+        "displayName": "#263",
+        "duration": 161996,
+        "fullDisplayName": "Test1 » user-mamagement-group-sync #263",
+        "number": 263,
+        "result": "SUCCESS",
+        "timestamp": 1596184080427,
+        "url": "https://jenkins.com/job/Test1/job/user-mamagement-group-sync/263/"
+      }
+    }
+  ]
+}

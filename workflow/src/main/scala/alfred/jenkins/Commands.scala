@@ -73,7 +73,7 @@ case class JenkinsAccount(username: String) extends Account {
  *
  * See [[LoginArgs]] and [[CliParser.loginCommand]]
  */
-class LoginCommand(settings: Settings[AlfredJenkinsSettings], credentials: Credentials) {
+class LoginCommand(settings: Settings[AlfredJenkinsSettings], credentials: CredentialService) {
   def login(url: String, username: String, password: String): IO[ScriptFilter] = {
     for {
       _ <- settings.save(AlfredJenkinsSettings(url = url, username = username))
