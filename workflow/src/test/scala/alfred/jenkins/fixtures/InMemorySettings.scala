@@ -2,19 +2,16 @@ package alfred.jenkins.fixtures
 
 import alfred.jenkins.Settings
 import cats.effect.IO
+import cats.effect.concurrent.Ref
 
-class InMemorySettings[S](initial: Option[S] = None) extends Settings[S] {
+/**
+  * An in-memory implementation of [[Settings]] for use in tests
+  */
+class InMemorySettings[S](initial: S) extends Settings[S] {
 
-  private var settings: S = initial.getOrElse(null.asInstanceOf[S])
+  private val settings: Ref[IO, S] = Ref.unsafe[IO, S](initial)
 
-  override def save(s: S): IO[Unit] = IO {
-    this.synchronized {
-      settings = s
-    }
+  override def save(s: S): IO[Unit] = settings.set(s)
 
-  }
-
-  override def fetch: IO[S] = IO {
-    this.synchronized(settings)
-  }
+  override def fetch: IO[S] = settings.get
 }

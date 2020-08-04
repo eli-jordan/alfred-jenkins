@@ -198,11 +198,12 @@ class JenkinsCache(files: FileService, clock: Clock[IO], cacheTtl: FiniteDuratio
   private def isValidCacheEntry(key: CacheKey): IO[Boolean] =
     for {
       exists <- files.exists(key.filePath)
-      isValid <- if (exists) {
-        isExpired(key).map(!_)
-      } else {
-        IO.pure(false)
-      }
+      isValid <-
+        if (exists) {
+          isExpired(key).map(!_)
+        } else {
+          IO.pure(false)
+        }
     } yield isValid
 
   private def isExpired(key: CacheKey): IO[Boolean] =

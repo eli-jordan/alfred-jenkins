@@ -26,38 +26,6 @@ object AlfredJenkinsSettings {
   implicit val decoder: Decoder[AlfredJenkinsSettings] = deriveDecoder
 }
 
-
-/**
-  * Wiring all necessary components together.
-  */
-trait AlfredJenkinsModule {
-  def client: Client[IO]
-  def environment: AlfredEnvironment
-  def credentials: CredentialService
-
-  implicit def contextShift: ContextShift[IO]
-  implicit def timer: Timer[IO]
-
-  private lazy val CacheFileService = new FileService(Paths.get(environment.workflowCacheDir))
-  private lazy val DataFileService  = new FileService(Paths.get(environment.workflowDataDir))
-  private lazy val Settings         = new SettingsLive[AlfredJenkinsSettings](DataFileService)
-  private lazy val JenkinsCache     = new JenkinsCache(CacheFileService, timer.clock)
-  private lazy val JenkinsClient    = new JenkinsClientLive(client, Settings, credentials)
-  private lazy val Jenkins          = new JenkinsLive(JenkinsClient, JenkinsCache)
-
-  private lazy val BuildHistoryCommand = new BuildHistoryCommand(Jenkins)
-  private lazy val BrowseCommand       = new BrowseCommand(Jenkins, Settings)
-  private lazy val SearchCommand       = new SearchCommand(Jenkins, Settings)
-  private lazy val LoginCommand        = new LoginCommand(Settings, credentials)
-
-  lazy val CommandDispatcher = new CommandDispatcher(
-    BrowseCommand,
-    SearchCommand,
-    LoginCommand,
-    BuildHistoryCommand
-  )
-}
-
 /**
   * The main entry point of the application
   */
@@ -69,7 +37,7 @@ object AlfredJenkins extends IOApp { self =>
     val action = CliParser.parse(args, sys.env) match {
       case Left(help) =>
         IO(println(help.toString())) //log.info(s"Command parsing failed: $help") //TODO: report error as json
-      case Right(args) => module.use(runCli(args))
+      case Right(args) => mainModule.use(runCli(args))
     }
 
     for {
@@ -94,20 +62,14 @@ object AlfredJenkins extends IOApp { self =>
     log.debug(s"Output:\n $json") *> IO(println(json))
   }
 
-  private val module: Resource[IO, AlfredJenkinsModule] = {
+  private val mainModule: Resource[IO, AlfredJenkinsModule] = {
     for {
       clientValue <- BlazeClientBuilder[IO](ExecutionContext.global).resource
-      environmentValue <- Resource.liftF(
-        AlfredEnvironment.fromEnv.liftTo[IO].flatTap(env => log.info(s"AlfredEnvironment: $env")))
+      environmentValue <-
+        Resource.liftF(AlfredEnvironment.fromEnv.liftTo[IO].flatTap(env => log.info(s"AlfredEnvironment: $env")))
       credentialsValue <- Resource.liftF(CredentialService.create(environmentValue.workflowBundleId))
     } yield {
-      new AlfredJenkinsModule {
-        override def client: Client[IO]                      = clientValue
-        override implicit def contextShift: ContextShift[IO] = self.contextShift
-        override def environment: AlfredEnvironment          = environmentValue
-        override def credentials: CredentialService          = credentialsValue
-        override implicit def timer: Timer[IO]               = self.timer
-      }
+      new AlfredJenkinsModuleLive(clientValue, environmentValue, credentialsValue)
     }
   }
 }

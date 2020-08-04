@@ -11,10 +11,10 @@ class CredentialServiceSpec extends AnyFlatSpec with Matchers {
 
     val action = for {
       service <- CredentialService.create("CredentialServiceSpec")
-      _ <- service.save(TestAccount, "foo-bar-badger")
-      pwd <- service.read(TestAccount)
-      _ <- IO { pwd mustBe "foo-bar-badger" }
-      _ <- service.delete(TestAccount)
+      _       <- service.save(TestAccount, "foo-bar-badger")
+      pwd     <- service.read(TestAccount)
+      _       <- IO { pwd mustBe "foo-bar-badger" }
+      _       <- service.delete(TestAccount)
     } yield ()
 
     action.unsafeRunSync()

@@ -17,22 +17,23 @@ class FileBackedJenkinsClient(files: FileService) extends JenkinsClient {
     val path = buildsPath(job)
     for {
       exists <- files.exists(path)
-      builds <- if (exists) {
-        for {
-          data    <- files.readFile(buildsPath(job))
-          json    <- io.circe.jawn.parse(data).liftTo[IO]
-          history <- json.as[JenkinsBuildHistory].liftTo[IO]
-        } yield history
-      } else {
-        IO.pure(
-          JenkinsBuildHistory(
-            url = "",
-            displayName = "",
-            fullDisplayName = "",
-            builds = List.empty
+      builds <-
+        if (exists) {
+          for {
+            data    <- files.readFile(buildsPath(job))
+            json    <- io.circe.jawn.parse(data).liftTo[IO]
+            history <- json.as[JenkinsBuildHistory].liftTo[IO]
+          } yield history
+        } else {
+          IO.pure(
+            JenkinsBuildHistory(
+              url = "",
+              displayName = "",
+              fullDisplayName = "",
+              builds = List.empty
+            )
           )
-        )
-      }
+        }
     } yield builds
   }
 
@@ -40,15 +41,16 @@ class FileBackedJenkinsClient(files: FileService) extends JenkinsClient {
     val file = jobPath(path)
     for {
       exists <- files.exists(file)
-      jobs <- if (exists) {
-        for {
-          data <- files.readFile(file)
-          json <- io.circe.jawn.parse(data).liftTo[IO]
-          list <- json.as[JenkinsJobsList].liftTo[IO]
-        } yield list.jobs
-      } else {
-        IO.pure(List.empty)
-      }
+      jobs <-
+        if (exists) {
+          for {
+            data <- files.readFile(file)
+            json <- io.circe.jawn.parse(data).liftTo[IO]
+            list <- json.as[JenkinsJobsList].liftTo[IO]
+          } yield list.jobs
+        } else {
+          IO.pure(List.empty)
+        }
     } yield jobs
   }
 

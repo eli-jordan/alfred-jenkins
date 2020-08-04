@@ -13,26 +13,26 @@ trait Settings[S] {
 }
 
 /**
- * Responsible for reading and saving settings data for the workflow.
- * Settings are stored as a single json encoded file.
- */
+  * Responsible for reading and saving settings data for the workflow.
+  * Settings are stored as a single json encoded file.
+  */
 class SettingsLive[S: Encoder: Decoder](files: FileService) extends Settings[S] {
 
   private val settingsFile = Paths.get("settings.json")
 
   /**
-   * Serialize and persist the settings.
-   *
-   * @param settings the settings object
-   */
+    * Serialize and persist the settings.
+    *
+    * @param settings the settings object
+    */
   def save(settings: S): IO[Unit] = {
     val json = settings.asJson.spaces2
     files.writeFile(settingsFile, json)
   }
 
   /**
-   * Lookup and deserialize the settings
-   */
+    * Lookup and deserialize the settings
+    */
   def fetch: IO[S] = {
     for {
       data     <- files.readFile(settingsFile)
