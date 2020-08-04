@@ -27,7 +27,6 @@ object JenkinsItem {
     * Action [[Variables.ActionVarName]] - This controls the sub-command that is executed in the recursive
     *   invocation. This is used to select between the browse jobs mode (i.e. 'browse' sub-command) and the
     *   build history view (i.e. 'build-history' sub-command).
-    *
     */
   object Variables {
     val PathVarName: String    = CliParser.PathOptionName
@@ -72,31 +71,32 @@ object JenkinsItem {
         .replaceAll("»", "/")
     }
 
-    private def icon(job: JenkinsJob): String = job._class match {
-      case JobType.Root   => ""
-      case JobType.Folder => Icons.Folder
-      case JobType.WorkflowJob | JobType.FreestyleJob => {
-        val healthOpt = job.healthReport.headOption.map(_.score)
-        healthOpt match {
-          case Some(health) => {
-            if (health >= 0 && health <= 20) {
-              Icons.Health00to19
-            } else if (health > 20 && health <= 40) {
-              Icons.Health20to29
-            } else if (health > 40 && health <= 60) {
-              Icons.Health40to59
-            } else if (health > 60 && health <= 80) {
-              Icons.Health60to79
-            } else {
-              Icons.Health80plus
+    private def icon(job: JenkinsJob): String =
+      job._class match {
+        case JobType.Root   => ""
+        case JobType.Folder => Icons.Folder
+        case JobType.WorkflowJob | JobType.FreestyleJob => {
+          val healthOpt = job.healthReport.headOption.map(_.score)
+          healthOpt match {
+            case Some(health) => {
+              if (health >= 0 && health <= 20) {
+                Icons.Health00to19
+              } else if (health > 20 && health <= 40) {
+                Icons.Health20to29
+              } else if (health > 40 && health <= 60) {
+                Icons.Health40to59
+              } else if (health > 60 && health <= 80) {
+                Icons.Health60to79
+              } else {
+                Icons.Health80plus
+              }
             }
+            case None => ""
           }
-          case None => ""
         }
+        case JobType.MultiBranch     => Icons.Folder
+        case JobType.Unrecognised(_) => Icons.Warning
       }
-      case JobType.MultiBranch     => Icons.Folder
-      case JobType.Unrecognised(_) => Icons.Warning
-    }
   }
 
   object Builds {
@@ -114,8 +114,8 @@ object JenkinsItem {
         // the path to the jobs url (not the build url) and the action
         // to build-history
         variables = Map(
-          Variables.PathVarName   -> parentUrl,
-          Variables.ActionVarName -> Variables.BuildHistoryCommandName,
+          Variables.PathVarName    -> parentUrl,
+          Variables.ActionVarName  -> Variables.BuildHistoryCommandName,
           Variables.OpenUrlVarName -> build.url
         )
       )
@@ -134,12 +134,13 @@ object JenkinsItem {
       s"$date $divider $duration"
     }
 
-    private def icon(build: JenkinsBuild): String = build.result.map(_.toLowerCase) match {
-      case Some("success")  => Icons.BlueBall
-      case Some("failure")  => Icons.RedBall
-      case Some("aborted")  => Icons.GreyBall
-      case Some("unstable") => Icons.YellowBall
-      case _                => Icons.GreyBall
-    }
+    private def icon(build: JenkinsBuild): String =
+      build.result.map(_.toLowerCase) match {
+        case Some("success")  => Icons.BlueBall
+        case Some("failure")  => Icons.RedBall
+        case Some("aborted")  => Icons.GreyBall
+        case Some("unstable") => Icons.YellowBall
+        case _                => Icons.GreyBall
+      }
   }
 }

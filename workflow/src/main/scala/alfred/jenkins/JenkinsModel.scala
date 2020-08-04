@@ -9,14 +9,15 @@ import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
   * defined in [[JenkinsClient#filter]]
   */
 sealed abstract class JobType(val value: String) {
-  def canHaveChildren: Boolean = this match {
-    case JobType.Root            => true
-    case JobType.Folder          => true
-    case JobType.WorkflowJob     => false
-    case JobType.FreestyleJob    => false
-    case JobType.MultiBranch     => true
-    case JobType.Unrecognised(_) => false
-  }
+  def canHaveChildren: Boolean =
+    this match {
+      case JobType.Root            => true
+      case JobType.Folder          => true
+      case JobType.WorkflowJob     => false
+      case JobType.FreestyleJob    => false
+      case JobType.MultiBranch     => true
+      case JobType.Unrecognised(_) => false
+    }
 }
 object JobType {
   case object Root                     extends JobType("hudson.model.Hudson")

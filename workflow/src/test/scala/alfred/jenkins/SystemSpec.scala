@@ -1,46 +1,11 @@
 package alfred.jenkins
 
-import java.nio.file.Paths
-
-import alfred.jenkins.fixtures.{FileBackedJenkinsClient, FileFixture, InMemorySettings}
-import cats.effect.{ContextShift, IO, Resource, Timer}
-import org.scalatest.flatspec.AnyFlatSpec
-import org.scalatest.matchers.must.Matchers
+import alfred.jenkins.fixtures.SystemSpecModule
+import cats.effect.IO
 import cats.implicits._
 import io.circe.syntax._
-
-import scala.concurrent.ExecutionContext
-
-trait SystemSpecModule {
-  def cacheDir: String
-  def jenkinsDataDir: String
-
-  implicit def contextShift: ContextShift[IO]
-  implicit def timer: Timer[IO]
-
-  lazy val Credentials = CredentialService.create("SystemSpecModule").unsafeRunSync()
-
-  private lazy val CacheFileService = new FileService(Paths.get(cacheDir))
-  lazy val Settings = new InMemorySettings[AlfredJenkinsSettings](
-    Some(AlfredJenkinsSettings(url = "https://jenkins.com", username = "Alice"))
-  )
-  private lazy val JenkinsCache = new JenkinsCache(CacheFileService, timer.clock)
-  private lazy val JenkinsClient =
-    new FileBackedJenkinsClient(new FileService(Paths.get(jenkinsDataDir)))
-  private lazy val Jenkins = new JenkinsLive(JenkinsClient, JenkinsCache)
-
-  private lazy val BuildHistoryCommand = new BuildHistoryCommand(Jenkins)
-  private lazy val BrowseCommand       = new BrowseCommand(Jenkins, Settings)
-  private lazy val SearchCommand       = new SearchCommand(Jenkins, Settings)
-  private lazy val LoginCommand        = new LoginCommand(Settings, Credentials)
-
-  lazy val CommandDispatcher = new CommandDispatcher(
-    BrowseCommand,
-    SearchCommand,
-    LoginCommand,
-    BuildHistoryCommand
-  )
-}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 
 class SystemSpec extends AnyFlatSpec with Matchers {
 
@@ -121,12 +86,13 @@ class SystemSpec extends AnyFlatSpec with Matchers {
   it should "Store the base url, username and password" in withModule { m =>
     import m._
     for {
-      _ <- CommandDispatcher.dispatch(LoginArgs(
-        url = "https://jenkins.com",
-        username = "eli-jordan",
-        password = "my-super-secret-pwd"
-      ))
-      pwd <- Credentials.read(JenkinsAccount("eli-jordan"))
+      _ <- CommandDispatcher.dispatch(
+        LoginArgs(
+          url = "https://jenkins.com",
+          username = "eli-jordan",
+          password = "my-super-secret-pwd"
+        ))
+      pwd      <- CredentialService.read(JenkinsAccount("eli-jordan"))
       settings <- Settings.fetch
       _ <- IO {
         pwd mustBe "my-super-secret-pwd"
@@ -137,20 +103,6 @@ class SystemSpec extends AnyFlatSpec with Matchers {
   }
 
   private def withModule(action: SystemSpecModule => IO[Unit]): Unit = {
-    module.use(action).unsafeRunSync()
-  }
-
-  private def module: Resource[IO, SystemSpecModule] = {
-    FileFixture.directory.map { dir =>
-      new SystemSpecModule {
-        override def cacheDir: String = dir.toString
-
-        override def jenkinsDataDir: String =
-          "./workflow/src/test/resources/jenkins-responses"
-
-        override implicit def contextShift: ContextShift[IO] = IO.contextShift(ExecutionContext.global)
-        override implicit def timer: Timer[IO]               = IO.timer(ExecutionContext.global)
-      }
-    }
+    SystemSpecModule.resource.use(action).unsafeRunSync()
   }
 }

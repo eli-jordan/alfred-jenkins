@@ -10,7 +10,7 @@ import scala.reflect.io.Directory
 object FileFixture {
 
   def directory: Resource[IO, File] = {
-    val create = IO { Files.createTempDirectory("FileFixture").toFile }
+    val create             = IO { Files.createTempDirectory("FileFixture").toFile }
     def delete(file: File) = IO { new Directory(file).deleteRecursively() }.void
     Resource.make(create)(delete)
   }
