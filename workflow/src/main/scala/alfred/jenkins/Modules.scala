@@ -44,7 +44,7 @@ trait JenkinsModuleLive extends JenkinsModule with FileServiceModule with IOModu
     new JenkinsCache(CacheFileService, timer.clock)
 
   override lazy val Jenkins: Jenkins =
-    new JenkinsLive(JenkinsClient, JenkinsCache)
+    new Jenkins(JenkinsClient, JenkinsCache)
 }
 
 /**

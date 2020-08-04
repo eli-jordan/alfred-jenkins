@@ -28,8 +28,10 @@ jobs:
         run: |
           java -version
           native-image --version
+      - name: Formatting check
+        run: sbt fmt-check
       - name: Run tests
-        run:  sbt workflow/clean coverage workflow/test workflow/coverageReport
+        run:  sbt run-tests
       - name: Publish coverage results
         uses: codecov/codecov-action@v1
         with:
@@ -37,7 +39,7 @@ jobs:
           file: ./workflow/target/scala-2.13/scoverage-report/scoverage.xml
           fail_ci_if_error: true
       - name: Package
-        run: sbt workflow/clean workflow/alfredWorkflowPackage
+        run: sbt run-package
       - name: Save the workflow as an artifact
         uses: actions/upload-artifact@v1
         with:

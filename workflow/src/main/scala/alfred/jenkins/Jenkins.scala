@@ -14,34 +14,6 @@ import org.http4s.{BasicCredentials, MediaType, Request, Uri}
 
 import scala.concurrent.duration._
 
-trait Jenkins {
-
-  /**
-    * Fetch jobs one level below the provided path.
-    *
-    * Note: The `path` parameter is assumed to be a valid, fully qualified job path.
-    *       e.g. https://jenkins.com/job/MyFolder
-    */
-  def jobs(path: Uri): IO[List[JenkinsJob]]
-
-  /**
-    * Fetch the latest 20 builds for the specified job.
-    *
-    * Note:
-    *  1. The `job` parameter is assumed to be a valid, fully qualified path.
-    */
-  def builds(job: Uri): IO[JenkinsBuildHistory]
-
-  /**
-    * Recursively scans all jobs that are under the specified path, returning only the
-    * leaf nodes that are found.
-    *
-    * Note: The `path` parameter is assumed to be a valid, fully qualified job path.
-    *       e.g. https://jenkins.com/job/MyFolder
-    */
-  def scan(path: Uri): IO[List[JenkinsJob]]
-}
-
 /**
   * Combines the [[JenkinsClient]] and the [[JenkinsCache]] into a uniform interface for querying
   * that ensures the cache is populated on read.
@@ -49,9 +21,15 @@ trait Jenkins {
   * @param client The jenkins api client
   * @param cache the jenkins cache
   */
-class JenkinsLive(client: JenkinsClient, cache: JenkinsCache)(implicit cs: ContextShift[IO]) extends Jenkins {
+class Jenkins(client: JenkinsClient, cache: JenkinsCache)(implicit cs: ContextShift[IO]) {
 
-  override def jobs(path: Uri): IO[List[JenkinsJob]] = {
+  /**
+    * Fetch jobs one level below the provided path.
+    *
+    * Note: The `path` parameter is assumed to be a valid, fully qualified job path.
+    *       e.g. https://jenkins.com/job/MyFolder
+    */
+  def jobs(path: Uri): IO[List[JenkinsJob]] = {
     cache.fetch(toCacheKey(path)).flatMap {
       case Some(jobs) => IO.pure(jobs)
       case None =>
@@ -63,12 +41,23 @@ class JenkinsLive(client: JenkinsClient, cache: JenkinsCache)(implicit cs: Conte
   }
 
   /**
-    * Note: Since builds can be updated quite frequently, this is not cached.
+    * Fetch the latest 20 builds for the specified job.
+    *
+    * Note:
+    *  1. The `job` parameter is assumed to be a valid, fully qualified path.
+    *  2. Since builds can be updated quite frequently, this is not cached.
     */
-  override def builds(job: Uri): IO[JenkinsBuildHistory] =
+  def builds(job: Uri): IO[JenkinsBuildHistory] =
     client.listBuilds(job)
 
-  override def scan(path: Uri): IO[List[JenkinsJob]] = {
+  /**
+    * Recursively scans all jobs that are under the specified path, returning only the
+    * leaf nodes that are found.
+    *
+    * Note: The `path` parameter is assumed to be a valid, fully qualified job path.
+    *       e.g. https://jenkins.com/job/MyFolder
+    */
+  def scan(path: Uri): IO[List[JenkinsJob]] = {
     for {
       list <- jobs(path)
       (branchJobs, leafJobs) = list.partition(_._class.canHaveChildren)
@@ -90,8 +79,25 @@ class JenkinsLive(client: JenkinsClient, cache: JenkinsCache)(implicit cs: Conte
   }
 }
 
+/**
+  * Interface to the Jenkins API that exposes listing jobs and build history for a job.
+  */
 trait JenkinsClient {
+
+  /**
+    * List build for the provided job
+    *
+    * Note: The `path` parameter is assumed to be a valid, fully qualified job path.
+    *        e.g. https://jenkins.com/job/MyFolder
+    */
   def listBuilds(job: Uri): IO[JenkinsBuildHistory]
+
+  /**
+    * Fetch jobs one level below the provided path.
+    *
+    * Note: The `path` parameter is assumed to be a valid, fully qualified job path.
+    *       e.g. https://jenkins.com/job/MyFolder
+    */
   def listJobs(path: Uri): IO[List[JenkinsJob]]
 }
 
@@ -102,8 +108,11 @@ trait JenkinsClient {
   * @param settings the settings accessor used to lookup the jenkins server URL and the user name to authenticate with.
   * @param credentials the credentials accessor used to lookup the users password.
   */
-class JenkinsClientLive(client: Client[IO], settings: Settings[AlfredJenkinsSettings], credentials: CredentialService)
-  extends JenkinsClient {
+class JenkinsClientLive(
+    client: Client[IO],
+    settings: Settings[AlfredJenkinsSettings],
+    credentials: CredentialService
+) extends JenkinsClient {
 
   /**
     * Specifies the fields thar are needed for a [[JenkinsBuild]]
@@ -123,23 +132,11 @@ class JenkinsClientLive(client: Client[IO], settings: Settings[AlfredJenkinsSett
   val BuildHistoryFilter =
     s"displayName,fullDisplayName,url,builds[$BuildFilter]{,20}"
 
-  /**
-    * List build for the provided job
-    *
-    * Note: The `path` parameter is assumed to be a valid, fully qualified job path.
-    *        e.g. https://jenkins.com/job/MyFolder
-    */
-  def listBuilds(job: Uri): IO[JenkinsBuildHistory] = {
+  override def listBuilds(job: Uri): IO[JenkinsBuildHistory] = {
     fetch[JenkinsBuildHistory](job, BuildHistoryFilter)
   }
 
-  /**
-    * Fetch jobs one level below the provided path.
-    *
-    * Note: The `path` parameter is assumed to be a valid, fully qualified job path.
-    *       e.g. https://jenkins.com/job/MyFolder
-    */
-  def listJobs(path: Uri): IO[List[JenkinsJob]] = {
+  override def listJobs(path: Uri): IO[List[JenkinsJob]] = {
     fetch[JenkinsJobsList](path, JobListFilter).map(_.jobs)
   }
 

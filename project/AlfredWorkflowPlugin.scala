@@ -80,7 +80,7 @@ object AlfredWorkflowPlugin extends AutoPlugin {
     alfredWorkflowPackage := {
       val outDir     = target.value / "alfred"
       val stagingDir = alfredWorkflowStage.value
-      val name = alfredWorkflowName.value
+      val name       = alfredWorkflowName.value
       packageWorkflow(stagingDir, name, outDir)
     }
   )
@@ -137,8 +137,7 @@ object AlfredWorkflowPlugin extends AutoPlugin {
 
     // Remove variables that are excluded from export
     val plistVars = properties.get("variables").asInstanceOf[NSDictionary]
-    val nonExported = Option(properties.get("variablesdontexport"))
-      .toList
+    val nonExported = Option(properties.get("variablesdontexport")).toList
       .flatMap(_.asInstanceOf[NSArray].getArray.toList)
       .map(_.asInstanceOf[NSString])
       .map(_.toString)
