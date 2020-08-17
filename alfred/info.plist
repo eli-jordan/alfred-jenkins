@@ -6,6 +6,79 @@
 	<string>com.elijordan.alfred.jenkins</string>
 	<key>connections</key>
 	<dict>
+		<key>1FB83AA3-BEE6-4681-8750-5401BC1C937A</key>
+		<array>
+			<dict>
+				<key>destinationuid</key>
+				<string>F0DA3829-0B87-41CA-85C0-ACC1D7DCAB51</string>
+				<key>modifiers</key>
+				<integer>0</integer>
+				<key>modifiersubtext</key>
+				<string></string>
+				<key>sourceoutputuid</key>
+				<string>520A67CB-A3D5-41E5-884E-4D5AE06A0235</string>
+				<key>vitoclose</key>
+				<false/>
+			</dict>
+			<dict>
+				<key>destinationuid</key>
+				<string>F0DA3829-0B87-41CA-85C0-ACC1D7DCAB51</string>
+				<key>modifiers</key>
+				<integer>0</integer>
+				<key>modifiersubtext</key>
+				<string></string>
+				<key>sourceoutputuid</key>
+				<string>BF5632F8-3042-4423-A4EE-E11A54683070</string>
+				<key>vitoclose</key>
+				<false/>
+			</dict>
+			<dict>
+				<key>destinationuid</key>
+				<string>F0DA3829-0B87-41CA-85C0-ACC1D7DCAB51</string>
+				<key>modifiers</key>
+				<integer>0</integer>
+				<key>modifiersubtext</key>
+				<string></string>
+				<key>vitoclose</key>
+				<false/>
+			</dict>
+			<dict>
+				<key>destinationuid</key>
+				<string>6FBAA486-0F5E-42A5-B131-5E3A7A7EB3BF</string>
+				<key>modifiers</key>
+				<integer>0</integer>
+				<key>modifiersubtext</key>
+				<string></string>
+				<key>sourceoutputuid</key>
+				<string>687DB4B1-A2EF-4125-8AE7-1DBE08A1CCC1</string>
+				<key>vitoclose</key>
+				<false/>
+			</dict>
+			<dict>
+				<key>destinationuid</key>
+				<string>A4097D2F-3EA5-4F77-997A-F315843FA2B9</string>
+				<key>modifiers</key>
+				<integer>0</integer>
+				<key>modifiersubtext</key>
+				<string></string>
+				<key>sourceoutputuid</key>
+				<string>2F4E263C-F109-4CD3-A650-506EADB81FF8</string>
+				<key>vitoclose</key>
+				<false/>
+			</dict>
+			<dict>
+				<key>destinationuid</key>
+				<string>7BC98236-046B-42A5-B709-F7D21919C920</string>
+				<key>modifiers</key>
+				<integer>0</integer>
+				<key>modifiersubtext</key>
+				<string></string>
+				<key>sourceoutputuid</key>
+				<string>BBF293CB-E0E1-4945-804C-91DD3B959639</string>
+				<key>vitoclose</key>
+				<false/>
+			</dict>
+		</array>
 		<key>6FBAA486-0F5E-42A5-B131-5E3A7A7EB3BF</key>
 		<array>
 			<dict>
@@ -59,7 +132,7 @@
 		<array>
 			<dict>
 				<key>destinationuid</key>
-				<string>F0DA3829-0B87-41CA-85C0-ACC1D7DCAB51</string>
+				<string>1FB83AA3-BEE6-4681-8750-5401BC1C937A</string>
 				<key>modifiers</key>
 				<integer>0</integer>
 				<key>modifiersubtext</key>
@@ -87,6 +160,19 @@
 				<integer>1048576</integer>
 				<key>modifiersubtext</key>
 				<string>Open with browser</string>
+				<key>vitoclose</key>
+				<false/>
+			</dict>
+		</array>
+		<key>FE69FCFC-0ED7-4110-AC30-89F49D93BA42</key>
+		<array>
+			<dict>
+				<key>destinationuid</key>
+				<string>AF02988B-6B7A-4B7C-848A-5E3680839719</string>
+				<key>modifiers</key>
+				<integer>0</integer>
+				<key>modifiersubtext</key>
+				<string></string>
 				<key>vitoclose</key>
 				<false/>
 			</dict>
@@ -137,7 +223,7 @@
 				<key>escaping</key>
 				<integer>102</integer>
 				<key>keyword</key>
-				<string>jenkins-browse</string>
+				<string>{var:keyword_prefix}jenkins-browse</string>
 				<key>queuedelaycustom</key>
 				<integer>3</integer>
 				<key>queuedelayimmediatelyinitially</key>
@@ -176,19 +262,6 @@ $ALFRED_JENKINS_COMMAND "$SUBCOMMAND"
 		<dict>
 			<key>config</key>
 			<dict>
-				<key>triggerid</key>
-				<string>open-path</string>
-			</dict>
-			<key>type</key>
-			<string>alfred.workflow.trigger.external</string>
-			<key>uid</key>
-			<string>E47E647B-09E4-45E8-94EF-52A630DD75AE</string>
-			<key>version</key>
-			<integer>1</integer>
-		</dict>
-		<dict>
-			<key>config</key>
-			<dict>
 				<key>argument</key>
 				<string>'{query}', {allvars}</string>
 				<key>cleardebuggertext</key>
@@ -200,6 +273,105 @@ $ALFRED_JENKINS_COMMAND "$SUBCOMMAND"
 			<string>alfred.workflow.utility.debug</string>
 			<key>uid</key>
 			<string>8148D24A-0A4D-4C2C-8E6E-42CFB698722D</string>
+			<key>version</key>
+			<integer>1</integer>
+		</dict>
+		<dict>
+			<key>config</key>
+			<dict>
+				<key>conditions</key>
+				<array>
+					<dict>
+						<key>inputstring</key>
+						<string>{var:action}</string>
+						<key>matchcasesensitive</key>
+						<false/>
+						<key>matchmode</key>
+						<integer>0</integer>
+						<key>matchstring</key>
+						<string>browse</string>
+						<key>outputlabel</key>
+						<string>Browse</string>
+						<key>uid</key>
+						<string>520A67CB-A3D5-41E5-884E-4D5AE06A0235</string>
+					</dict>
+					<dict>
+						<key>inputstring</key>
+						<string>{var:action}</string>
+						<key>matchcasesensitive</key>
+						<false/>
+						<key>matchmode</key>
+						<integer>0</integer>
+						<key>matchstring</key>
+						<string>build-history</string>
+						<key>outputlabel</key>
+						<string>Build History</string>
+						<key>uid</key>
+						<string>BF5632F8-3042-4423-A4EE-E11A54683070</string>
+					</dict>
+					<dict>
+						<key>inputstring</key>
+						<string>{var:action}</string>
+						<key>matchcasesensitive</key>
+						<false/>
+						<key>matchmode</key>
+						<integer>0</integer>
+						<key>matchstring</key>
+						<string>search</string>
+						<key>outputlabel</key>
+						<string>Search</string>
+						<key>uid</key>
+						<string>687DB4B1-A2EF-4125-8AE7-1DBE08A1CCC1</string>
+					</dict>
+					<dict>
+						<key>inputstring</key>
+						<string>{var:action}</string>
+						<key>matchcasesensitive</key>
+						<false/>
+						<key>matchmode</key>
+						<integer>0</integer>
+						<key>matchstring</key>
+						<string>login</string>
+						<key>outputlabel</key>
+						<string>Login</string>
+						<key>uid</key>
+						<string>2F4E263C-F109-4CD3-A650-506EADB81FF8</string>
+					</dict>
+					<dict>
+						<key>inputstring</key>
+						<string>{var:action}</string>
+						<key>matchcasesensitive</key>
+						<false/>
+						<key>matchmode</key>
+						<integer>0</integer>
+						<key>matchstring</key>
+						<string>logs</string>
+						<key>outputlabel</key>
+						<string>Logs</string>
+						<key>uid</key>
+						<string>BBF293CB-E0E1-4945-804C-91DD3B959639</string>
+					</dict>
+				</array>
+				<key>elselabel</key>
+				<string>else</string>
+			</dict>
+			<key>type</key>
+			<string>alfred.workflow.utility.conditional</string>
+			<key>uid</key>
+			<string>1FB83AA3-BEE6-4681-8750-5401BC1C937A</string>
+			<key>version</key>
+			<integer>1</integer>
+		</dict>
+		<dict>
+			<key>config</key>
+			<dict>
+				<key>triggerid</key>
+				<string>open-path</string>
+			</dict>
+			<key>type</key>
+			<string>alfred.workflow.trigger.external</string>
+			<key>uid</key>
+			<string>E47E647B-09E4-45E8-94EF-52A630DD75AE</string>
 			<key>version</key>
 			<integer>1</integer>
 		</dict>
@@ -242,7 +414,7 @@ $ALFRED_JENKINS_COMMAND "$SUBCOMMAND"
 				<key>escaping</key>
 				<integer>102</integer>
 				<key>keyword</key>
-				<string>jenkins-search</string>
+				<string>{var:keyword_prefix}jenkins-search</string>
 				<key>queuedelaycustom</key>
 				<integer>3</integer>
 				<key>queuedelayimmediatelyinitially</key>
@@ -281,9 +453,9 @@ $ALFRED_JENKINS_COMMAND "$SUBCOMMAND"
 				<key>argumenttype</key>
 				<integer>0</integer>
 				<key>keyword</key>
-				<string>jenkins-login</string>
+				<string>{var:keyword_prefix}jenkins-login</string>
 				<key>subtext</key>
-				<string><![CDATA[jenkins-login <url> <username> <password>]]></string>
+				<string>jenkins-login &lt;url&gt; &lt;username&gt; &lt;password&gt;</string>
 				<key>text</key>
 				<string>Login to Jenkins</string>
 				<key>withspace</key>
@@ -293,6 +465,25 @@ $ALFRED_JENKINS_COMMAND "$SUBCOMMAND"
 			<string>alfred.workflow.input.keyword</string>
 			<key>uid</key>
 			<string>A4097D2F-3EA5-4F77-997A-F315843FA2B9</string>
+			<key>version</key>
+			<integer>1</integer>
+		</dict>
+		<dict>
+			<key>config</key>
+			<dict>
+				<key>externaltriggerid</key>
+				<string>open-path</string>
+				<key>passinputasargument</key>
+				<false/>
+				<key>passvariables</key>
+				<true/>
+				<key>workflowbundleid</key>
+				<string>self</string>
+			</dict>
+			<key>type</key>
+			<string>alfred.workflow.output.callexternaltrigger</string>
+			<key>uid</key>
+			<string>AF02988B-6B7A-4B7C-848A-5E3680839719</string>
 			<key>version</key>
 			<integer>1</integer>
 		</dict>
@@ -319,73 +510,126 @@ $ALFRED_JENKINS_COMMAND "$SUBCOMMAND"
 			<key>version</key>
 			<integer>2</integer>
 		</dict>
+		<dict>
+			<key>config</key>
+			<dict>
+				<key>concurrently</key>
+				<false/>
+				<key>escaping</key>
+				<integer>102</integer>
+				<key>script</key>
+				<string>open "${alfred_workflow_data}/alfred-jenkins.log"</string>
+				<key>scriptargtype</key>
+				<integer>1</integer>
+				<key>scriptfile</key>
+				<string></string>
+				<key>type</key>
+				<integer>0</integer>
+			</dict>
+			<key>type</key>
+			<string>alfred.workflow.action.script</string>
+			<key>uid</key>
+			<string>7BC98236-046B-42A5-B709-F7D21919C920</string>
+			<key>version</key>
+			<integer>2</integer>
+		</dict>
 	</array>
 	<key>readme</key>
-	<string>This is the alfred readme
-</string>
+	<string>This is the alfred readme</string>
 	<key>uidata</key>
 	<dict>
 		<key>01E87D7F-F2D2-4465-BD5A-84BF3624DB2A</key>
 		<dict>
 			<key>xpos</key>
-			<integer>690</integer>
+			<integer>905</integer>
 			<key>ypos</key>
-			<integer>230</integer>
+			<integer>225</integer>
+		</dict>
+		<key>1FB83AA3-BEE6-4681-8750-5401BC1C937A</key>
+		<dict>
+			<key>xpos</key>
+			<integer>175</integer>
+			<key>ypos</key>
+			<integer>150</integer>
 		</dict>
 		<key>6FBAA486-0F5E-42A5-B131-5E3A7A7EB3BF</key>
 		<dict>
+			<key>note</key>
+			<string>Search</string>
 			<key>xpos</key>
-			<integer>235</integer>
+			<integer>450</integer>
 			<key>ypos</key>
-			<integer>235</integer>
+			<integer>230</integer>
+		</dict>
+		<key>7BC98236-046B-42A5-B709-F7D21919C920</key>
+		<dict>
+			<key>note</key>
+			<string>Open Log</string>
+			<key>xpos</key>
+			<integer>495</integer>
+			<key>ypos</key>
+			<integer>615</integer>
 		</dict>
 		<key>8148D24A-0A4D-4C2C-8E6E-42CFB698722D</key>
 		<dict>
 			<key>xpos</key>
-			<integer>540</integer>
+			<integer>755</integer>
 			<key>ypos</key>
-			<integer>60</integer>
+			<integer>55</integer>
 		</dict>
 		<key>97744B82-DFB8-47CB-8D17-0F84D3DEB003</key>
 		<dict>
 			<key>xpos</key>
-			<integer>690</integer>
+			<integer>905</integer>
 			<key>ypos</key>
-			<integer>30</integer>
+			<integer>25</integer>
 		</dict>
 		<key>A4097D2F-3EA5-4F77-997A-F315843FA2B9</key>
 		<dict>
+			<key>note</key>
+			<string>Login</string>
 			<key>xpos</key>
-			<integer>235</integer>
+			<integer>450</integer>
+			<key>ypos</key>
+			<integer>400</integer>
+		</dict>
+		<key>AF02988B-6B7A-4B7C-848A-5E3680839719</key>
+		<dict>
+			<key>xpos</key>
+			<integer>905</integer>
 			<key>ypos</key>
 			<integer>405</integer>
 		</dict>
 		<key>E47E647B-09E4-45E8-94EF-52A630DD75AE</key>
 		<dict>
 			<key>xpos</key>
-			<integer>30</integer>
+			<integer>20</integer>
 			<key>ypos</key>
-			<integer>30</integer>
+			<integer>175</integer>
 		</dict>
 		<key>F0DA3829-0B87-41CA-85C0-ACC1D7DCAB51</key>
 		<dict>
+			<key>note</key>
+			<string>Browse / Build History</string>
 			<key>xpos</key>
-			<integer>230</integer>
+			<integer>445</integer>
 			<key>ypos</key>
-			<integer>30</integer>
+			<integer>25</integer>
 		</dict>
 		<key>FE69FCFC-0ED7-4110-AC30-89F49D93BA42</key>
 		<dict>
 			<key>xpos</key>
-			<integer>470</integer>
+			<integer>685</integer>
 			<key>ypos</key>
-			<integer>415</integer>
+			<integer>410</integer>
 		</dict>
 	</dict>
 	<key>variables</key>
 	<dict>
 		<key>ALFRED_JENKINS_COMMAND</key>
 		<string>./alfred-jenkins</string>
+		<key>keyword_prefix</key>
+		<string>dev-</string>
 	</dict>
 	<key>version</key>
 	<string>0.1.0-SNAPSHOT</string>

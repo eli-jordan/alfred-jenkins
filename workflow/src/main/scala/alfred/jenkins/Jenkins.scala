@@ -157,8 +157,8 @@ class JenkinsClientLive(
   private def basicCredentials: IO[BasicCredentials] = {
     for {
       config   <- settings.fetch
-      password <- credentials.read(JenkinsAccount(config.username))
-    } yield BasicCredentials(config.username, password)
+      password <- credentials.read(JenkinsAccount(config.get.username)) //TODO Option.get
+    } yield BasicCredentials(config.get.username, password) //TODO Option.get
   }
 }
 

@@ -96,8 +96,8 @@ class SystemSpec extends AnyFlatSpec with Matchers {
       settings <- Settings.fetch
       _ <- IO {
         pwd mustBe "my-super-secret-pwd"
-        settings.url mustBe "https://jenkins.com"
-        settings.username mustBe "eli-jordan"
+        settings.get.url mustBe "https://jenkins.com"
+        settings.get.username mustBe "eli-jordan"
       }
     } yield ()
   }

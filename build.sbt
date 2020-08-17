@@ -93,7 +93,8 @@ lazy val `workflow` = (project in file("workflow"))
       (packageBin in GraalVMNativeImage).value
     ),
     alfredWorkflowVariables := Map(
-      "ALFRED_JENKINS_COMMAND" -> "./alfred-jenkins"
+      "ALFRED_JENKINS_COMMAND" -> "./alfred-jenkins",
+      "KEYWORD_PREFIX"         -> ""
     ),
     libraryDependencies ++= Seq(
       "io.circe"             %% "circe-core"           % circeVersion,

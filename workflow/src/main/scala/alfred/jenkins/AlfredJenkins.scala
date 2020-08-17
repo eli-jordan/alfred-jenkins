@@ -36,14 +36,31 @@ object AlfredJenkins extends IOApp { self =>
   override def run(args: List[String]): IO[ExitCode] = {
     val action = CliParser.parse(args, sys.env) match {
       case Left(help) =>
-        IO(println(help.toString())) //log.info(s"Command parsing failed: $help") //TODO: report error as json
+        IO.raiseError(new Exception(help.toString()))
       case Right(args) => mainModule.use(runCli(args))
     }
 
     for {
       start <- timer.clock.realTime(TimeUnit.MILLISECONDS)
-      _ <- action.onError {
-        case e: Throwable => log.error(e)(s"alfred-jenkins failed processing $args")
+      _ <- action.attempt.flatMap {
+        case Left(e) => {
+          for {
+            _ <- log.error(e)(s"alfred-jenkins failed processing $args")
+            _ <- write(ScriptFilter(
+              items = List(
+                Item(
+                  title = s"An unexpected error occurred. ${e.getMessage}",
+                  subtitle = Some("↩ to open logs"),
+                  icon = Some(Icon(path = Icons.Error)),
+                  variables = Map(
+                    "action" -> "logs"
+                  )
+                )
+              )
+            ))
+          } yield ()
+        }
+        case Right(_) => IO.unit
       }
       end <- timer.clock.realTime(TimeUnit.MILLISECONDS)
       _   <- log.info(s"Execution took: ${end - start} ms")

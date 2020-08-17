@@ -19,7 +19,7 @@ trait Settings[S] {
   /**
     * Lookup and deserialize the settings
     */
-  def fetch: IO[S]
+  def fetch: IO[Option[S]]
 }
 
 /**
@@ -35,11 +35,20 @@ class SettingsLive[S: Encoder: Decoder](files: FileService, fileName: String = "
     files.writeFile(settingsFile, json)
   }
 
-  override def fetch: IO[S] = {
+  override def fetch: IO[Option[S]] = {
     for {
-      data     <- files.readFile(settingsFile)
-      json     <- io.circe.jawn.parse(data).liftTo[IO]
-      settings <- json.as[S].liftTo[IO]
-    } yield settings
+      exists <- files.exists(settingsFile)
+      settingsOpt <-
+        if (exists) {
+          for {
+            data     <- files.readFile(settingsFile)
+            json     <- io.circe.jawn.parse(data).liftTo[IO]
+            settings <- json.as[S].liftTo[IO]
+          } yield Some(settings)
+        } else {
+          IO.pure(None)
+        }
+
+    } yield settingsOpt
   }
 }

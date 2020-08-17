@@ -13,15 +13,37 @@ import org.http4s.Uri
 class BrowseCommand(jenkins: Jenkins, settings: Settings[AlfredJenkinsSettings]) {
   def browse(pathOpt: Option[String]): IO[ScriptFilter] = {
     for {
-      config <- settings.fetch
-      path = pathOpt.getOrElse(config.url)
-      jobs <- jenkins.jobs(Uri.unsafeFromString(path))
-    } yield {
-      ScriptFilter(
-        items = JenkinsItem.Job.items(jobs)
-      )
-    }
+      configOpt <- settings.fetch
+      filter <- {
+        configOpt match {
+          case Some(config) => {
+            val path = pathOpt.getOrElse(config.url)
+            jenkins.jobs(Uri.unsafeFromString(path)).map { jobs =>
+              ScriptFilter(
+                items = JenkinsItem.Job.items(jobs)
+              )
+            }
+          }
+          case None => {
+            IO.pure(
+              ScriptFilter(
+                items = List(noSettingsItem)
+              ))
+          }
+        }
+      }
+    } yield filter
   }
+
+  def noSettingsItem: Item =
+    Item(
+      title = "No jenkins servers available",
+      subtitle = Some("Login to a server using jenkins-login <url> <username> <password>"),
+      icon = Some(Icon(path = Icons.Warning)),
+      variables = Map(
+        "action" -> "login"
+      )
+    )
 }
 
 /**
@@ -52,7 +74,7 @@ class SearchCommand(jenkins: Jenkins, settings: Settings[AlfredJenkinsSettings])
   def search(pathOpt: Option[String]): IO[ScriptFilter] = {
     for {
       config <- settings.fetch
-      path = pathOpt.getOrElse(config.url)
+      path = pathOpt.getOrElse(config.get.url) //TODO Option.get
       jobs <- jenkins.scan(Uri.unsafeFromString(path))
     } yield {
       ScriptFilter(
@@ -74,11 +96,22 @@ case class JenkinsAccount(username: String) extends Account {
   * See [[LoginArgs]] and [[CliParser.loginCommand]]
   */
 class LoginCommand(settings: Settings[AlfredJenkinsSettings], credentials: CredentialService) {
+  // TODO: Validate credentials
   def login(url: String, username: String, password: String): IO[ScriptFilter] = {
     for {
       _ <- settings.save(AlfredJenkinsSettings(url = url, username = username))
       _ <- credentials.save(JenkinsAccount(username), password)
-    } yield ScriptFilter(items = List.empty) //TODO: show browse results
+    } yield
+      ScriptFilter(items =
+        List(
+          Item(
+            title = "",
+            variables = Map(
+              "action" -> "browse"
+            )
+          )
+        )
+      )
   }
 }
 
