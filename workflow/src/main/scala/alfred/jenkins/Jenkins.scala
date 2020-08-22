@@ -21,7 +21,12 @@ import scala.concurrent.duration._
   * @param client The jenkins api client
   * @param cache the jenkins cache
   */
-class Jenkins(client: JenkinsClient, cache: JenkinsCache)(implicit cs: ContextShift[IO]) {
+class Jenkins(
+    client: JenkinsClient,
+    cache: JenkinsCache,
+    validation: Validation,
+    credentials: CredentialService
+)(implicit cs: ContextShift[IO]) {
 
   /**
     * Fetch jobs one level below the provided path.
@@ -30,14 +35,18 @@ class Jenkins(client: JenkinsClient, cache: JenkinsCache)(implicit cs: ContextSh
     *       e.g. https://jenkins.com/job/MyFolder
     */
   def jobs(path: Uri): IO[List[JenkinsJob]] = {
-    cache.fetch(toCacheKey(path)).flatMap {
-      case Some(jobs) => IO.pure(jobs)
-      case None =>
-        for {
-          jobs <- client.listJobs(path)
-          _    <- cache.store(toCacheKey(path), jobs)
-        } yield jobs
-    }
+    for {
+      credentials <- jenkinsCredentials
+      job <- cache.fetch(toCacheKey(path)).flatMap {
+        case Some(jobs) => IO.pure(jobs)
+        case None =>
+          for {
+            jobs <- client.listJobs(path, credentials)
+            _    <- cache.store(toCacheKey(path), jobs)
+          } yield jobs
+      }
+    } yield job
+
   }
 
   /**
@@ -47,8 +56,12 @@ class Jenkins(client: JenkinsClient, cache: JenkinsCache)(implicit cs: ContextSh
     *  1. The `job` parameter is assumed to be a valid, fully qualified path.
     *  2. Since builds can be updated quite frequently, this is not cached.
     */
-  def builds(job: Uri): IO[JenkinsBuildHistory] =
-    client.listBuilds(job)
+  def builds(job: Uri): IO[JenkinsBuildHistory] = {
+    for {
+      credentials <- jenkinsCredentials
+      history     <- client.listBuilds(job, credentials)
+    } yield history
+  }
 
   /**
     * Recursively scans all jobs that are under the specified path, returning only the
@@ -77,11 +90,19 @@ class Jenkins(client: JenkinsClient, cache: JenkinsCache)(implicit cs: ContextSh
       path = uri.path
     )
   }
+
+  private def jenkinsCredentials: IO[JenkinsCredentials] = {
+    for {
+      config   <- validation.validateSettings
+      password <- credentials.read(JenkinsAccount(config.username))
+    } yield JenkinsCredentials(config.username, password)
+  }
 }
 
 /**
   * Interface to the Jenkins API that exposes listing jobs and build history for a job.
   */
+case class JenkinsCredentials(username: String, password: String)
 trait JenkinsClient {
 
   /**
@@ -90,7 +111,7 @@ trait JenkinsClient {
     * Note: The `path` parameter is assumed to be a valid, fully qualified job path.
     *        e.g. https://jenkins.com/job/MyFolder
     */
-  def listBuilds(job: Uri): IO[JenkinsBuildHistory]
+  def listBuilds(job: Uri, credentials: JenkinsCredentials): IO[JenkinsBuildHistory]
 
   /**
     * Fetch jobs one level below the provided path.
@@ -98,21 +119,13 @@ trait JenkinsClient {
     * Note: The `path` parameter is assumed to be a valid, fully qualified job path.
     *       e.g. https://jenkins.com/job/MyFolder
     */
-  def listJobs(path: Uri): IO[List[JenkinsJob]]
+  def listJobs(path: Uri, credentials: JenkinsCredentials): IO[List[JenkinsJob]]
 }
 
 /**
   * A Jenkins API client that allows fetching jobs and their build status.
-  *
-  * @param client the http4s client used to issue requests
-  * @param settings the settings accessor used to lookup the jenkins server URL and the user name to authenticate with.
-  * @param credentials the credentials accessor used to lookup the users password.
   */
-class JenkinsClientLive(
-    client: Client[IO],
-    settings: Settings[AlfredJenkinsSettings],
-    credentials: CredentialService
-) extends JenkinsClient {
+class JenkinsClientLive(client: Client[IO]) extends JenkinsClient {
 
   /**
     * Specifies the fields thar are needed for a [[JenkinsBuild]]
@@ -132,33 +145,25 @@ class JenkinsClientLive(
   val BuildHistoryFilter =
     s"displayName,fullDisplayName,url,builds[$BuildFilter]{,20}"
 
-  override def listBuilds(job: Uri): IO[JenkinsBuildHistory] = {
-    fetch[JenkinsBuildHistory](job, BuildHistoryFilter)
+  override def listBuilds(job: Uri, credentials: JenkinsCredentials): IO[JenkinsBuildHistory] = {
+    fetch[JenkinsBuildHistory](job, BuildHistoryFilter, credentials)
   }
 
-  override def listJobs(path: Uri): IO[List[JenkinsJob]] = {
-    fetch[JenkinsJobsList](path, JobListFilter).map(_.jobs)
+  override def listJobs(path: Uri, credentials: JenkinsCredentials): IO[List[JenkinsJob]] = {
+    fetch[JenkinsJobsList](path, JobListFilter, credentials).map(_.jobs)
   }
 
-  private def fetch[A: Decoder](path: Uri, filter: String): IO[A] = {
-    for {
-      credentials <- basicCredentials
-      uri = path / "api" / "json" +? ("tree", filter)
-      request = Request[IO]()
-        .withUri(uri)
-        .withHeaders(
-          Accept(MediaType.application.json),
-          Authorization(credentials)
-        )
-      value <- client.expect[A](request)
-    } yield value
-  }
+  private def fetch[A: Decoder](path: Uri, filter: String, credentials: JenkinsCredentials): IO[A] = {
+    val basicCredentials = BasicCredentials(credentials.username, credentials.password)
+    val uri              = path / "api" / "json" +? ("tree", filter)
+    val request = Request[IO]()
+      .withUri(uri)
+      .withHeaders(
+        Accept(MediaType.application.json),
+        Authorization(basicCredentials)
+      )
 
-  private def basicCredentials: IO[BasicCredentials] = {
-    for {
-      config   <- settings.fetch
-      password <- credentials.read(JenkinsAccount(config.get.username)) //TODO Option.get
-    } yield BasicCredentials(config.get.username, password) //TODO Option.get
+    client.expect[A](request)
   }
 }
 

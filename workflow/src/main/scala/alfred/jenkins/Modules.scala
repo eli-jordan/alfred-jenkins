@@ -26,25 +26,26 @@ trait JenkinsClientModule {
   def JenkinsClient: JenkinsClient
 }
 
-trait JenkinsClientModuleLive
-  extends JenkinsClientModule
-  with SettingsModule
-  with HttpClientModule
-  with CredentialsModule {
+trait JenkinsClientModuleLive extends JenkinsClientModule with HttpClientModule {
   override lazy val JenkinsClient: JenkinsClient =
-    new JenkinsClientLive(Client, Settings, CredentialService)
+    new JenkinsClientLive(Client)
 }
 
 /**
   * Production definition of the jenkins components described by [[JenkinsModule]]
   */
-trait JenkinsModuleLive extends JenkinsModule with FileServiceModule with IOModule {
+trait JenkinsModuleLive
+  extends JenkinsModule
+  with FileServiceModule
+  with ValidationModule
+  with CredentialsModule
+  with IOModule {
 
   override lazy val JenkinsCache: JenkinsCache =
     new JenkinsCache(CacheFileService, timer.clock)
 
   override lazy val Jenkins: Jenkins =
-    new Jenkins(JenkinsClient, JenkinsCache)
+    new Jenkins(JenkinsClient, JenkinsCache, Validation, CredentialService)
 }
 
 /**
@@ -67,12 +68,14 @@ trait CommandModuleLive
   with JenkinsModule
   with SettingsModule
   with CredentialsModule
+  with ValidationModule
+  with JenkinsClientModule
   with IOModule {
 
   override lazy val BuildHistoryCommand: BuildHistoryCommand = new BuildHistoryCommand(Jenkins)
-  override lazy val LoginCommand: LoginCommand               = new LoginCommand(Settings, CredentialService)
-  override lazy val SearchCommand: SearchCommand             = new SearchCommand(Jenkins, Settings)
-  override lazy val BrowseCommand: BrowseCommand             = new BrowseCommand(Jenkins, Settings)
+  override lazy val LoginCommand: LoginCommand               = new LoginCommand(Settings, CredentialService, JenkinsClient)
+  override lazy val SearchCommand: SearchCommand             = new SearchCommand(Jenkins, Validation)
+  override lazy val BrowseCommand: BrowseCommand             = new BrowseCommand(Jenkins, Validation)
 
   override lazy val CommandDispatcher: CommandDispatcher = new CommandDispatcher(
     BrowseCommand,
@@ -111,9 +114,16 @@ trait SettingsModule {
   * Production ready configuration of the components described in [[SettingsModule]]
   */
 trait SettingsModuleLive extends SettingsModule with FileServiceModule {
-
   override lazy val Settings: Settings[AlfredJenkinsSettings] =
     new SettingsLive[AlfredJenkinsSettings](DataFileService)
+}
+
+trait ValidationModule {
+  def Validation: Validation
+}
+
+trait ValidationModuleLive extends ValidationModule with SettingsModule {
+  override def Validation: Validation = new Validation(Settings)
 }
 
 /**
@@ -174,6 +184,7 @@ class AlfredJenkinsModuleLive(
     val CredentialService: CredentialService
 ) extends AlfredJenkinsModule
   with JenkinsModuleLive
+  with ValidationModuleLive
   with JenkinsClientModuleLive
   with CommandModuleLive
   with FileServiceModuleLive

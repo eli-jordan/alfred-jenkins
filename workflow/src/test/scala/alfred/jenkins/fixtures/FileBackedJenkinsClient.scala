@@ -13,7 +13,7 @@ import org.http4s.Uri
   */
 class FileBackedJenkinsClient(files: FileService) extends JenkinsClient {
 
-  override def listBuilds(job: Uri): IO[JenkinsBuildHistory] = {
+  override def listBuilds(job: Uri, credentials: JenkinsCredentials): IO[JenkinsBuildHistory] = {
     val path = buildsPath(job)
     for {
       exists <- files.exists(path)
@@ -37,7 +37,7 @@ class FileBackedJenkinsClient(files: FileService) extends JenkinsClient {
     } yield builds
   }
 
-  override def listJobs(path: Uri): IO[List[JenkinsJob]] = {
+  override def listJobs(path: Uri, credentials: JenkinsCredentials): IO[List[JenkinsJob]] = {
     val file = jobPath(path)
     for {
       exists <- files.exists(file)

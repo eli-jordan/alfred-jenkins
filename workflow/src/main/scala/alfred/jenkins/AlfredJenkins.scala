@@ -1,15 +1,14 @@
 package alfred.jenkins
-import java.nio.file.Paths
 import java.util.concurrent.TimeUnit
 
-import cats.effect.{ContextShift, ExitCode, IO, IOApp, Resource, Timer}
+import cats.effect.{ExitCode, IO, IOApp, Resource}
 import cats.implicits._
 import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
-import io.circe.{Decoder, Encoder}
-import io.circe.syntax._
-import org.http4s.client.Client
-import org.http4s.client.blaze.BlazeClientBuilder
 import io.circe.generic.semiauto._
+import io.circe.syntax._
+import io.circe.{Decoder, Encoder}
+import org.http4s.client.blaze.BlazeClientBuilder
+import cats.implicits._
 
 import scala.concurrent.ExecutionContext
 
@@ -41,34 +40,47 @@ object AlfredJenkins extends IOApp { self =>
     }
 
     for {
+      _     <- log.debug(s"Raw args: $args")
       start <- timer.clock.realTime(TimeUnit.MILLISECONDS)
-      _ <- action.attempt.flatMap {
-        case Left(e) => {
-          for {
-            _ <- log.error(e)(s"alfred-jenkins failed processing $args")
-            _ <- write(ScriptFilter(
-              items = List(
-                Item(
-                  title = s"An unexpected error occurred. ${e.getMessage}",
-                  subtitle = Some("↩ to open logs"),
-                  icon = Some(Icon(path = Icons.Error)),
-                  variables = Map(
-                    "action" -> "logs"
-                  )
-                )
-              )
-            ))
-          } yield ()
-        }
-        case Right(_) => IO.unit
-      }
-      end <- timer.clock.realTime(TimeUnit.MILLISECONDS)
-      _   <- log.info(s"Execution took: ${end - start} ms")
+      _     <- action
+      end   <- timer.clock.realTime(TimeUnit.MILLISECONDS)
+      _     <- log.info(s"Execution took: ${end - start} ms")
     } yield ExitCode.Success
   }
 
   private def runCli(args: Args)(module: AlfredJenkinsModule): IO[Unit] = {
-    module.CommandDispatcher.dispatch(args).flatMap(write)
+    module.CommandDispatcher
+      .dispatch(args)
+      .recoverWith {
+        case AlfredFailure(items) => IO.pure(items)
+        case e                    => log.error(e)("An unexpected error occurred") *> IO.pure(unexpectedErrorItems(e))
+      }
+      .flatMap(write)
+  }
+
+  /**
+    * Formats an item that will be displayed when an error without specific handling is encountered.
+    *
+    * When the item is triggered it will open the workflow logs.
+    */
+  private def unexpectedErrorItems(e: Throwable): ScriptFilter = {
+    ScriptFilter(
+      items = List(
+        Item(
+          title = "An unexpected error occurred",
+          subtitle = Some(s"${e.getClass.getSimpleName}: ${e.getMessage}"),
+          icon = Some(Icon(path = Icons.Error)),
+          valid = false
+        ),
+        Item(
+          title = "Open Logs",
+          icon = Some(Icon(path = Icons.Help)),
+          variables = Map(
+            "action" -> "logs"
+          )
+        )
+      )
+    )
   }
 
   /**

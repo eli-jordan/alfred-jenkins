@@ -23,6 +23,7 @@ class SystemSpecModule(
     override val Environment: AlfredEnvironment,
     override val CredentialService: CredentialService
 ) extends AlfredJenkinsModule
+  with ValidationModuleLive
   with JenkinsModuleLive
   with JenkinsClientModuleFake
   with CommandModuleLive
@@ -35,6 +36,7 @@ class SystemSpecModule(
 object SystemSpecModule {
   def resource: Resource[IO, SystemSpecModule] = {
     val credentials = CredentialService.create("SystemSpecModule").unsafeRunSync()
+    credentials.save(JenkinsAccount("Alice"), "nothing").unsafeRunSync()
 
     def env(data: File, cache: File) =
       AlfredEnvironment(

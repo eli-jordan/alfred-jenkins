@@ -33,7 +33,7 @@ class SettingsSpec extends AnyFlatSpec with Matchers {
           _       <- settings.save(testConfig)
           fetched <- settings.fetch
           _ <- IO {
-            fetched mustBe testConfig
+            fetched mustBe Some(testConfig)
           }
         } yield ()
       }
