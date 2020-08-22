@@ -94,7 +94,7 @@ lazy val `workflow` = (project in file("workflow"))
     ),
     alfredWorkflowVariables := Map(
       "ALFRED_JENKINS_COMMAND" -> "./alfred-jenkins",
-      "KEYWORD_PREFIX"         -> ""
+      "keyword_prefix"         -> ""
     ),
     alfredWorkflowBundleId := "com.elijordan.alfred.jenkins",
     libraryDependencies ++= Seq(
