@@ -25,6 +25,13 @@ object AlfredWorkflowPlugin extends AutoPlugin {
     val alfredWorkflowVersion = settingKey[String]("The workflow version number")
 
     /**
+      * The workflow bundle id. This will be injected into the `info.plist` file.
+      *
+      * Required.
+      */
+    val alfredWorkflowBundleId = settingKey[String]("The bundle id for the workflow")
+
+    /**
       * The directory that holds all static files that should be copied into the published workflow.
       *
       * - There MUST be an `info.plist` file describing the workflow in this directory.
@@ -70,6 +77,7 @@ object AlfredWorkflowPlugin extends AutoPlugin {
       stageWorkflow(
         name = alfredWorkflowName.value,
         version = alfredWorkflowVersion.value,
+        bundleId = alfredWorkflowBundleId.value,
         dir = alfredWorkflowDir.value,
         extraFiles = alfredWorkflowExtraFiles.value,
         variables = alfredWorkflowVariables.value,
@@ -88,6 +96,7 @@ object AlfredWorkflowPlugin extends AutoPlugin {
   def stageWorkflow(
       name: String,
       version: String,
+      bundleId: String,
       dir: File,
       extraFiles: Seq[File],
       variables: Map[String, String],
@@ -98,6 +107,7 @@ object AlfredWorkflowPlugin extends AutoPlugin {
       name = name,
       plist = dir / "info.plist",
       readme = dir / "readme.txt",
+      bundleId = bundleId,
       version = version,
       variables = variables,
       outDir = outDir
@@ -124,12 +134,14 @@ object AlfredWorkflowPlugin extends AutoPlugin {
       name: String,
       readme: File,
       version: String,
+      bundleId: String,
       variables: Map[String, String],
       outDir: File
   ): Unit = {
     val properties = PropertyListParser.parse(plist).asInstanceOf[NSDictionary]
     properties.put("name", new NSString(name))
     properties.put("version", new NSString(version))
+    properties.put("bundleid", new NSString(bundleId))
 
     if (readme.exists()) {
       properties.put("readme", new NSString(IO.read(readme)))

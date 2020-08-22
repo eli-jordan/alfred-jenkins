@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
 	<key>bundleid</key>
-	<string>com.elijordan.alfred.jenkins</string>
+	<string>com.elijordan.alfred.jenkins.dev</string>
 	<key>connections</key>
 	<dict>
 		<key>1FB83AA3-BEE6-4681-8750-5401BC1C937A</key>
