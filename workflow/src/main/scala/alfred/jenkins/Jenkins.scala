@@ -79,7 +79,7 @@ class Jenkins(
       }
     } yield {
       jobs ++ leafJobs.filter { job =>
-        job.buildable.get
+        job.buildable.getOrElse(false)
       }
     }
   }
