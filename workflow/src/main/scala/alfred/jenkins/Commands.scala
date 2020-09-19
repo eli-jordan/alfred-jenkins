@@ -108,13 +108,12 @@ class LoginCommand(settings: Settings[AlfredJenkinsSettings], credentials: Crede
     val uri         = Uri.unsafeFromString(url)
     client
       .listJobs(uri, credentials)
-      .recoverWith {
-        case e =>
-          log
-            .warn(e)(s"Failed to validate credentials. username=$username password=$password url=$url")
-            .flatMap { _ =>
-              IO.raiseError(AlfredFailure(JenkinsItem.failedLoginItems))
-            }
+      .recoverWith { case e =>
+        log
+          .warn(e)(s"Failed to validate credentials. username=$username password=$password url=$url")
+          .flatMap { _ =>
+            IO.raiseError(AlfredFailure(JenkinsItem.failedLoginItems))
+          }
       }
       .void
   }
