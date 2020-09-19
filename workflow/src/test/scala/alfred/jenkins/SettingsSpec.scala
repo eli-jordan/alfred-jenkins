@@ -20,6 +20,20 @@ class SettingsSpec extends AnyFlatSpec with Matchers {
     implicit val decoder: Decoder[TestSettings] = deriveDecoder
   }
 
+  it should "return None if there are no settings" in {
+    FileFixture.directory
+      .use { dir =>
+        val settings = new SettingsLive[TestSettings](new FileService(dir.toPath))
+        for {
+          fetched <- settings.fetch
+          _ <- IO {
+            fetched mustBe None
+          }
+        } yield ()
+      }
+      .unsafeRunSync()
+  }
+
   it should "save and fetch settings" in {
     val testConfig = TestSettings(
       name = "foo-bar-beaver",

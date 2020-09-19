@@ -1,13 +1,14 @@
 package alfred.jenkins
 
-import alfred.jenkins.fixtures.SystemSpecModule
+import alfred.jenkins.fixtures.{InMemorySettings, SystemSpecModule}
 import cats.effect.IO
 import cats.implicits._
 import io.circe.syntax._
+import org.scalatest.Inside
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.must.Matchers
 
-class SystemSpec extends AnyFlatSpec with Matchers {
+class SystemSpec extends AnyFlatSpec with Matchers with Inside {
 
   behavior of "Browse Command"
 
@@ -58,6 +59,24 @@ class SystemSpec extends AnyFlatSpec with Matchers {
     } yield ()
   }
 
+  it should "Return an error message if no settings are defined" in withModuleNoSettings { m =>
+    import m._
+    for {
+      result <- CommandDispatcher.dispatch(BrowseArgs(path = None)).attempt
+      _ <- IO {
+        withClue(result) {
+          inside(result) {
+            case Left(AlfredFailure(filter)) => {
+              val titles = filter.items.map(_.title)
+              titles must contain("No jenkins servers available")
+              titles must contain("Login")
+            }
+          }
+        }
+      }
+    } yield ()
+  }
+
   behavior of "Search Command"
 
   it should "List only leaf jobs" in withModule { m =>
@@ -76,6 +95,24 @@ class SystemSpec extends AnyFlatSpec with Matchers {
           titles.size mustBe 6
 
           result.items.forall(_.variables("action") == "build-history") mustBe true
+        }
+      }
+    } yield ()
+  }
+
+  it should "Return an error message if no settings are defined" in withModuleNoSettings { m =>
+    import m._
+    for {
+      result <- CommandDispatcher.dispatch(SearchArgs(path = None)).attempt
+      _ <- IO {
+        withClue(result) {
+          inside(result) {
+            case Left(AlfredFailure(filter)) => {
+              val titles = filter.items.map(_.title)
+              titles must contain("No jenkins servers available")
+              titles must contain("Login")
+            }
+          }
         }
       }
     } yield ()
@@ -102,7 +139,31 @@ class SystemSpec extends AnyFlatSpec with Matchers {
     } yield ()
   }
 
+  it should "Return an error when the configuration is invalid" in withModule { m =>
+    import m._
+    for {
+      result <- LoginCommand.login("fake.com/i-do-not-exist", "username", "password").attempt
+      _ <- IO {
+        withClue(result) {
+          inside(result) {
+            case Left(AlfredFailure(filter)) => {
+              val titles = filter.items.map(_.title)
+              titles must contain("Failed to login")
+              titles must contain("Login Again")
+              titles must contain("Open Logs")
+            }
+          }
+        }
+      }
+    } yield ()
+  }
+
+  private def withModuleNoSettings(action: SystemSpecModule => IO[Unit]): Unit = {
+    val settings = new InMemorySettings[AlfredJenkinsSettings](null)
+    SystemSpecModule.resource(settings).use(action).unsafeRunSync()
+  }
+
   private def withModule(action: SystemSpecModule => IO[Unit]): Unit = {
-    SystemSpecModule.resource.use(action).unsafeRunSync()
+    SystemSpecModule.resource().use(action).unsafeRunSync()
   }
 }

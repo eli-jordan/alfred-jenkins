@@ -100,6 +100,9 @@ class LoginCommand(settings: Settings[AlfredJenkinsSettings], credentials: Crede
     } yield JenkinsItem.successfulLoginItems
   }
 
+  /**
+    * Validates the login details that were provided before they are saved.
+    */
   private def validate(url: String, username: String, password: String): IO[Unit] = {
     val credentials = JenkinsCredentials(username, password)
     val uri         = Uri.unsafeFromString(url)
