@@ -159,9 +159,8 @@ object AlfredWorkflowPlugin extends AutoPlugin {
     }
 
     println(s"Setting variables in info.plist: $variables")
-    variables.foreach {
-      case (key, value) =>
-        plistVars.put(key, new NSString(value))
+    variables.foreach { case (key, value) =>
+      plistVars.put(key, new NSString(value))
     }
 
     PropertyListParser.saveAsXML(properties, outDir / "info.plist")
