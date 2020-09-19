@@ -12,30 +12,10 @@ class Validation(settings: Settings[AlfredJenkinsSettings]) {
       config <- {
         configOpt match {
           case Some(config) => IO.pure(config)
-          case None         => IO.raiseError(AlfredFailure(noSettingsItems))
-
+          case None         => IO.raiseError(AlfredFailure(JenkinsItem.noSettingsItems))
         }
       }
     } yield config
-  }
-
-  private def noSettingsItems: ScriptFilter = {
-    ScriptFilter(
-      items = List(
-        Item(
-          title = "No jenkins servers available",
-          valid = false,
-          icon = Some(Icon(path = Icons.Warning))
-        ),
-        Item(
-          title = "Login",
-          icon = Some(Icon(path = Icons.User)),
-          variables = Map(
-            "action" -> "login"
-          )
-        )
-      )
-    )
   }
 }
 
@@ -117,22 +97,7 @@ class LoginCommand(settings: Settings[AlfredJenkinsSettings], credentials: Crede
     for {
       _ <- validate(url, username, password)
       _ <- save(url, username, password)
-    } yield {
-      ScriptFilter(items = List(
-        Item(
-          title = "Login details have been saved",
-          valid = false,
-          icon = Some(Icon(path = Icons.Info))
-        ),
-        Item(
-          title = "Browse jobs",
-          icon = Some(Icon(path = Icons.Web)),
-          variables = Map(
-            "action" -> "browse"
-          )
-        )
-      ))
-    }
+    } yield JenkinsItem.successfulLoginItems
   }
 
   private def validate(url: String, username: String, password: String): IO[Unit] = {
@@ -145,35 +110,10 @@ class LoginCommand(settings: Settings[AlfredJenkinsSettings], credentials: Crede
           log
             .warn(e)(s"Failed to validate credentials. username=$username password=$password url=$url")
             .flatMap { _ =>
-              IO.raiseError(AlfredFailure(loginFailureItems))
+              IO.raiseError(AlfredFailure(JenkinsItem.failedLoginItems))
             }
       }
       .void
-  }
-
-  private def loginFailureItems: ScriptFilter = {
-    ScriptFilter(items = List(
-      Item(
-        title = "Failed to login",
-        subtitle = Some("Verify that the url and credentials are correct"),
-        icon = Some(Icon(path = Icons.Error)),
-        valid = false
-      ),
-      Item(
-        title = "Login Again",
-        icon = Some(Icon(path = Icons.User)),
-        variables = Map(
-          "action" -> "login"
-        )
-      ),
-      Item(
-        title = "Open Logs",
-        icon = Some(Icon(path = Icons.Help)),
-        variables = Map(
-          "action" -> "logs"
-        )
-      )
-    ))
   }
 
   private def save(url: String, username: String, password: String): IO[Unit] = {

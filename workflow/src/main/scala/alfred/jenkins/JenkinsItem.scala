@@ -143,4 +143,102 @@ object JenkinsItem {
         case _                => Icons.GreyBall
       }
   }
+
+  /**
+    * The items that will be presented to the user when the
+    * workflow is invoked without first running the login command.
+    */
+  def noSettingsItems: ScriptFilter = {
+    ScriptFilter(
+      items = List(
+        Item(
+          title = "No jenkins servers available",
+          valid = false,
+          icon = Some(Icon(path = Icons.Warning))
+        ),
+        Item(
+          title = "Login",
+          icon = Some(Icon(path = Icons.User)),
+          variables = Map(
+            "action" -> "login"
+          )
+        )
+      )
+    )
+  }
+
+  /**
+    * The items that are presented to the user when the login command
+    * has run successfully and the username and password have been saved.
+    */
+  def successfulLoginItems: ScriptFilter = {
+    ScriptFilter(items = List(
+      Item(
+        title = "Login details have been saved",
+        valid = false,
+        icon = Some(Icon(path = Icons.Info))
+      ),
+      Item(
+        title = "Browse jobs",
+        icon = Some(Icon(path = Icons.Web)),
+        variables = Map(
+          "action" -> "browse"
+        )
+      )
+    ))
+  }
+
+  /**
+    * The items that are presented to the user when the login command
+    * has failed.
+    */
+  def failedLoginItems: ScriptFilter = {
+    ScriptFilter(items = List(
+      Item(
+        title = "Failed to login",
+        subtitle = Some("Verify that the url and credentials are correct"),
+        icon = Some(Icon(path = Icons.Error)),
+        valid = false
+      ),
+      Item(
+        title = "Login Again",
+        icon = Some(Icon(path = Icons.User)),
+        variables = Map(
+          "action" -> "login"
+        )
+      ),
+      Item(
+        title = "Open Logs",
+        icon = Some(Icon(path = Icons.Help)),
+        variables = Map(
+          "action" -> "logs"
+        )
+      )
+    ))
+  }
+
+  /**
+    * Formats an item that will be displayed when an error without specific handling is encountered.
+    *
+    * When the item is triggered it will open the workflow logs.
+    */
+  def unexpectedErrorItems(e: Throwable): ScriptFilter = {
+    ScriptFilter(
+      items = List(
+        Item(
+          title = "An unexpected error occurred",
+          subtitle = Some(s"${e.getClass.getSimpleName}: ${e.getMessage}"),
+          icon = Some(Icon(path = Icons.Error)),
+          valid = false
+        ),
+        Item(
+          title = "Open Logs",
+          icon = Some(Icon(path = Icons.Help)),
+          variables = Map(
+            "action" -> "logs"
+          )
+        )
+      )
+    )
+  }
 }

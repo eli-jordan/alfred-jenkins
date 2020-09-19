@@ -53,34 +53,11 @@ object AlfredJenkins extends IOApp { self =>
       .dispatch(args)
       .recoverWith {
         case AlfredFailure(items) => IO.pure(items)
-        case e                    => log.error(e)("An unexpected error occurred") *> IO.pure(unexpectedErrorItems(e))
+        case e =>
+          log.error(e)("An unexpected error occurred") *>
+            IO.pure(JenkinsItem.unexpectedErrorItems(e))
       }
       .flatMap(write)
-  }
-
-  /**
-    * Formats an item that will be displayed when an error without specific handling is encountered.
-    *
-    * When the item is triggered it will open the workflow logs.
-    */
-  private def unexpectedErrorItems(e: Throwable): ScriptFilter = {
-    ScriptFilter(
-      items = List(
-        Item(
-          title = "An unexpected error occurred",
-          subtitle = Some(s"${e.getClass.getSimpleName}: ${e.getMessage}"),
-          icon = Some(Icon(path = Icons.Error)),
-          valid = false
-        ),
-        Item(
-          title = "Open Logs",
-          icon = Some(Icon(path = Icons.Help)),
-          variables = Map(
-            "action" -> "logs"
-          )
-        )
-      )
-    )
   }
 
   /**
