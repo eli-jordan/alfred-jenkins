@@ -13,5 +13,5 @@ class InMemorySettings[S](initial: S) extends Settings[S] {
 
   override def save(s: S): IO[Unit] = settings.set(s)
 
-  override def fetch: IO[S] = settings.get
+  override def fetch: IO[Option[S]] = settings.get.map(Option.apply)
 }

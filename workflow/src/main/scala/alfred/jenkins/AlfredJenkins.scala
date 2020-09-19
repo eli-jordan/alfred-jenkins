@@ -1,15 +1,14 @@
 package alfred.jenkins
-import java.nio.file.Paths
 import java.util.concurrent.TimeUnit
 
-import cats.effect.{ContextShift, ExitCode, IO, IOApp, Resource, Timer}
+import cats.effect.{ExitCode, IO, IOApp, Resource}
 import cats.implicits._
 import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
-import io.circe.{Decoder, Encoder}
-import io.circe.syntax._
-import org.http4s.client.Client
-import org.http4s.client.blaze.BlazeClientBuilder
 import io.circe.generic.semiauto._
+import io.circe.syntax._
+import io.circe.{Decoder, Encoder}
+import org.http4s.client.blaze.BlazeClientBuilder
+import cats.implicits._
 
 import scala.concurrent.ExecutionContext
 
@@ -36,22 +35,29 @@ object AlfredJenkins extends IOApp { self =>
   override def run(args: List[String]): IO[ExitCode] = {
     val action = CliParser.parse(args, sys.env) match {
       case Left(help) =>
-        IO(println(help.toString())) //log.info(s"Command parsing failed: $help") //TODO: report error as json
+        IO.raiseError(new Exception(help.toString()))
       case Right(args) => mainModule.use(runCli(args))
     }
 
     for {
+      _     <- log.debug(s"Raw args: $args")
       start <- timer.clock.realTime(TimeUnit.MILLISECONDS)
-      _ <- action.onError {
-        case e: Throwable => log.error(e)(s"alfred-jenkins failed processing $args")
-      }
-      end <- timer.clock.realTime(TimeUnit.MILLISECONDS)
-      _   <- log.info(s"Execution took: ${end - start} ms")
+      _     <- action
+      end   <- timer.clock.realTime(TimeUnit.MILLISECONDS)
+      _     <- log.info(s"Execution took: ${end - start} ms")
     } yield ExitCode.Success
   }
 
   private def runCli(args: Args)(module: AlfredJenkinsModule): IO[Unit] = {
-    module.CommandDispatcher.dispatch(args).flatMap(write)
+    module.CommandDispatcher
+      .dispatch(args)
+      .recoverWith {
+        case AlfredFailure(items) => IO.pure(items)
+        case e =>
+          log.error(e)("An unexpected error occurred") *>
+            IO.pure(JenkinsItem.unexpectedErrorItems(e))
+      }
+      .flatMap(write)
   }
 
   /**
