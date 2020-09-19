@@ -2,6 +2,22 @@ package alfred.jenkins
 
 import cats.effect.{ContextShift, IO}
 import org.http4s.Uri
+import cats.implicits._
+import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
+
+class Validation(settings: Settings[AlfredJenkinsSettings]) {
+  def validateSettings: IO[AlfredJenkinsSettings] = {
+    for {
+      configOpt <- settings.fetch
+      config <- {
+        configOpt match {
+          case Some(config) => IO.pure(config)
+          case None         => IO.raiseError(AlfredFailure(JenkinsItem.noSettingsItems))
+        }
+      }
+    } yield config
+  }
+}
 
 /**
   * Command handler for the 'browse' sub-command.
@@ -10,17 +26,17 @@ import org.http4s.Uri
   *
   * See [[BrowseArgs]] and [[CliParser.browseCommand]]
   */
-class BrowseCommand(jenkins: Jenkins, settings: Settings[AlfredJenkinsSettings]) {
+class BrowseCommand(jenkins: Jenkins, validation: Validation) {
   def browse(pathOpt: Option[String]): IO[ScriptFilter] = {
     for {
-      config <- settings.fetch
+      config <- validation.validateSettings
       path = pathOpt.getOrElse(config.url)
-      jobs <- jenkins.jobs(Uri.unsafeFromString(path))
-    } yield {
-      ScriptFilter(
-        items = JenkinsItem.Job.items(jobs)
-      )
-    }
+      filter <- jenkins.jobs(Uri.unsafeFromString(path)).map { jobs =>
+        ScriptFilter(
+          items = JenkinsItem.Job.items(jobs)
+        )
+      }
+    } yield filter
   }
 }
 
@@ -48,10 +64,10 @@ class BuildHistoryCommand(jenkins: Jenkins) {
   *
   * See [[SearchArgs]] and [[CliParser.searchCommand]]
   */
-class SearchCommand(jenkins: Jenkins, settings: Settings[AlfredJenkinsSettings])(implicit cs: ContextShift[IO]) {
+class SearchCommand(jenkins: Jenkins, validation: Validation)(implicit cs: ContextShift[IO]) {
   def search(pathOpt: Option[String]): IO[ScriptFilter] = {
     for {
-      config <- settings.fetch
+      config <- validation.validateSettings
       path = pathOpt.getOrElse(config.url)
       jobs <- jenkins.scan(Uri.unsafeFromString(path))
     } yield {
@@ -73,12 +89,41 @@ case class JenkinsAccount(username: String) extends Account {
   *
   * See [[LoginArgs]] and [[CliParser.loginCommand]]
   */
-class LoginCommand(settings: Settings[AlfredJenkinsSettings], credentials: CredentialService) {
+class LoginCommand(settings: Settings[AlfredJenkinsSettings], credentials: CredentialService, client: JenkinsClient) {
+
+  private val log = Slf4jLogger.getLogger[IO]
+
   def login(url: String, username: String, password: String): IO[ScriptFilter] = {
+    for {
+      _ <- validate(url, username, password)
+      _ <- save(url, username, password)
+    } yield JenkinsItem.successfulLoginItems
+  }
+
+  /**
+    * Validates the login details that were provided before they are saved.
+    */
+  private def validate(url: String, username: String, password: String): IO[Unit] = {
+    val credentials = JenkinsCredentials(username, password)
+    val uri         = Uri.unsafeFromString(url)
+    client
+      .listJobs(uri, credentials)
+      .recoverWith {
+        case e =>
+          log
+            .warn(e)(s"Failed to validate credentials. username=$username password=$password url=$url")
+            .flatMap { _ =>
+              IO.raiseError(AlfredFailure(JenkinsItem.failedLoginItems))
+            }
+      }
+      .void
+  }
+
+  private def save(url: String, username: String, password: String): IO[Unit] = {
     for {
       _ <- settings.save(AlfredJenkinsSettings(url = url, username = username))
       _ <- credentials.save(JenkinsAccount(username), password)
-    } yield ScriptFilter(items = List.empty) //TODO: show browse results
+    } yield ()
   }
 }
 

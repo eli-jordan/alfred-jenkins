@@ -93,8 +93,10 @@ lazy val `workflow` = (project in file("workflow"))
       (packageBin in GraalVMNativeImage).value
     ),
     alfredWorkflowVariables := Map(
-      "ALFRED_JENKINS_COMMAND" -> "./alfred-jenkins"
+      "ALFRED_JENKINS_COMMAND" -> "./alfred-jenkins",
+      "keyword_prefix"         -> ""
     ),
+    alfredWorkflowBundleId := "com.elijordan.alfred.jenkins",
     libraryDependencies ++= Seq(
       "io.circe"             %% "circe-core"           % circeVersion,
       "io.circe"             %% "circe-generic"        % circeVersion,
@@ -135,6 +137,7 @@ lazy val `local-dev` = (project in file("local-dev"))
     alfredWorkflowName := "Jenkins (Dev)",
     alfredWorkflowDir := baseDirectory.value.getParentFile / "alfred",
     alfredWorkflowExtraFiles := Seq.empty,
+    alfredWorkflowBundleId := "com.elijordan.alfred.jenkins.dev",
     link := {
       val workflowStagingDir = Def
         .sequential(
@@ -150,7 +153,7 @@ lazy val `local-dev` = (project in file("local-dev"))
         .props("user.home") + "/Library/Application Support/Alfred/Alfred.alfredpreferences/workflows/"
       val linkDir = workflowsDir + "user.workflow.jenkins"
       val command =
-        SProcess(Seq("rm", "-f", linkDir)) #&&
+        SProcess(Seq("rm", "-rf", linkDir)) #&&
           SProcess(Seq("ln", "-s", workflowStagingDir.toString, linkDir)) #&&
           SProcess(Seq("rm", "-f", (workflowStagingDir / "info.plist").toString)) #&&
           SProcess(
