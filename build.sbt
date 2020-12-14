@@ -2,10 +2,8 @@ import com.typesafe.sbt.packager.universal.UniversalPlugin.autoImport.stage
 
 import scala.sys.process.{Process => SProcess}
 
-ThisBuild / scalaVersion := "2.13.2"
+ThisBuild / scalaVersion := "0.26.0"
 ThisBuild / organization := "com.elijordan"
-
-val circeVersion = "0.13.0"
 
 lazy val `alfred-jenkins` = (project in file("."))
   .settings(
@@ -97,20 +95,23 @@ lazy val `workflow` = (project in file("workflow"))
       "keyword_prefix"         -> ""
     ),
     alfredWorkflowBundleId := "com.elijordan.alfred.jenkins",
-    libraryDependencies ++= Seq(
-      "io.circe"             %% "circe-core"           % circeVersion,
-      "io.circe"             %% "circe-generic"        % circeVersion,
-      "io.circe"             %% "circe-generic-extras" % circeVersion,
-      "pt.davidafsilva.apple" % "jkeychain"            % "1.0.0",
-      "org.typelevel"        %% "cats-effect"          % "2.2.0-RC1",
-      "org.http4s"           %% "http4s-blaze-client"  % "0.21.6",
-      "org.http4s"           %% "http4s-circe"         % "0.21.6",
-      "org.http4s"           %% "http4s-dsl"           % "0.21.6",
-      "com.monovore"         %% "decline"              % "1.0.0",
-      "io.chrisdavenport"    %% "log4cats-slf4j"       % "1.1.1",
-      "ch.qos.logback"        % "logback-classic"      % "1.2.3",
-      "org.scalatest"        %% "scalatest"            % "3.2.0" % Test
-    )
+    libraryDependencies ++=
+      Seq(
+
+//        "io.circe"          %% "circe-generic-extras" % "0.13.0",
+        "org.typelevel"     %% "cats-effect"          % "2.3.0",
+        "org.http4s"        %% "http4s-blaze-client"  % "0.21.6",
+//        "org.http4s"        %% "http4s-circe"         % "0.21.6",
+        "org.http4s"        %% "http4s-dsl"           % "0.21.6",
+        "com.monovore"      %% "decline"              % "1.3.0",
+//        "io.chrisdavenport" %% "log4cats-slf4j"       % "1.1.1",
+        "org.scalatest"     %% "scalatest"            % "3.2.3" % Test
+      ).map(_.withDottyCompat(scalaVersion.value)) ++ Seq(
+        "io.circe"          %% "circe-core"           % "0.14.0-M1",
+        "io.circe"          %% "circe-generic"        % "0.14.0-M1",
+        "pt.davidafsilva.apple" % "jkeychain"       % "1.0.0",
+        "ch.qos.logback"        % "logback-classic" % "1.2.3"
+      )
   )
   .enablePlugins(JavaAppPackaging)
   .enablePlugins(GraalVMNativeImagePlugin)
