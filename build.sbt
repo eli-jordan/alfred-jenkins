@@ -76,6 +76,7 @@ lazy val `alfred-jenkins` = (project in file("."))
 lazy val `workflow` = (project in file("workflow"))
   .settings(
     name := "alfred-jenkins",
+    sonarExpectSonarQubeCommunityPlugin := false,
     graalVMNativeImageOptions := Seq(
       "--verbose",
       "-H:+TraceClassInitialization",
