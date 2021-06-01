@@ -34,15 +34,28 @@ jobs:
         run: sbt fmt-check
       - name: Run tests
         run:  sbt run-tests
-      - name: SonarCloud Reporting
+      - name: SonarCloud Scan
+        uses: sonarsource/sonarcloud-github-action@master
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          sbt -Dsonar.host.url=https://sonarcloud.io \
-              -Dsonar.projectKey=eli-jordan_alfred-jenkins \
-              -Dsonar.organization=eli-jordan \
-              -Dsonar.junit.reportPaths=./workflow/target/test-reports/*.xml \
-              workflow/sonarScan
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          projectBaseDir: workflow
+          args: >
+            -Dsonar.host.url=https://sonarcloud.io \
+            -Dsonar.projectKey=eli-jordan_alfred-jenkins \
+            -Dsonar.organization=eli-jordan \
+            -Dsonar.scala.coverage.reportPaths=./workflow/target/scala-2.13/scoverage-report/scoverage.xml
+            -Dsonar.junit.reportPaths=./workflow/target/test-reports/*.xml
+#      - name: SonarCloud Reporting
+#        env:
+#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#        run: |
+#          sbt -Dsonar.host.url=https://sonarcloud.io \
+#              -Dsonar.projectKey=eli-jordan_alfred-jenkins \
+#              -Dsonar.organization=eli-jordan \
+#              -Dsonar.junit.reportPaths=./workflow/target/test-reports/*.xml \
+#              workflow/sonarScan
       - name: Publish coverage results
         uses: codecov/codecov-action@v1
         with:
