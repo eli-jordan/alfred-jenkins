@@ -34,7 +34,11 @@ class FileService(root: Path) {
     */
   def lastModified(path: Path): IO[Long] =
     IO {
-      fromRoot(path).toFile.lastModified()
+      if (true) {
+        fromRoot(path).toFile.lastModified()
+      } else {
+        0L
+      }
     }
 
   /**
