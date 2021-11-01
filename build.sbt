@@ -2,7 +2,7 @@ import com.typesafe.sbt.packager.universal.UniversalPlugin.autoImport.stage
 
 import scala.sys.process.{Process => SProcess}
 
-ThisBuild / scalaVersion := "2.13.6"
+ThisBuild / scalaVersion := "2.13.7"
 ThisBuild / organization := "com.elijordan"
 
 val circeVersion = "0.13.0"
