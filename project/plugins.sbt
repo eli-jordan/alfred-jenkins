@@ -7,7 +7,7 @@ addSbtPlugin("com.sonar-scala"  % "sbt-sonar"           % "2.3.0")
 
 libraryDependencies ++= Seq(
   // Used by AlfredWorkflowPlugin
-  "com.googlecode.plist" % "dd-plist" % "1.23",
+  "com.googlecode.plist" % "dd-plist" % "1.26",
   // For JDK 11
   "com.sun.activation" % "javax.activation" % "1.2.0"
 )
